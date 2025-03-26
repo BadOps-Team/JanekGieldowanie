@@ -31,8 +31,9 @@ class Simulation:
       genetic_algorithm: Instancja algorytmu genetycznego, używana do ewolucji strategii agentów.
     """
 
-    def __init__(self, agents: List[Any], stock_utilities: Dict[str, Any], T: int = 100, dt: int = 1):
+    def __init__(self, agents: List[Any], genetic_algorithm: Any, stock_utilities: Dict[str, Any], T: int = 100, dt: int = 1):
         self.agents = agents
+        self.genetic_algorithm = genetic_algorithm
         self.stock_utilities = stock_utilities  # np. {'AAPL': StockUtility('AAPL'), ...}
         self.T = T
         self.dt = dt  # time step (1 day)
@@ -53,11 +54,10 @@ class Simulation:
         W tej implementacji wykorzystujemy model ruchu Browna (geometric Brownian motion).
         """
         for ticker in self.stock_utilities.keys():
-            # Pobieramy ostatnią cenę; jeśli brak, ustawiamy cenę początkową (np. 100)
-            if self.market_history[ticker]:
+            try:
                 last_price = self.market_history[ticker][-1]
-            else:
-                last_price = 100.0
+            except IndexError as e:
+                raise ValueError(f"No previous price available for ticker '{ticker}'") from e
 
             # Parametry modelu: oczekiwana stopa zwrotu (mu) oraz zmienność (sigma)
             mu = 0.0005  # oczekiwany zwrot dzienny
@@ -77,8 +77,10 @@ class Simulation:
         """
         current_data = {}
         for ticker, prices in self.market_history.items():
-            current_data[ticker] = prices[-1] if prices else 100.0
-        return current_data
+            try:
+                current_data[ticker] = prices[-1]
+            except IndexError as e:
+                raise ValueError(f"No current price available for ticker '{ticker}'") from e
 
     def run_step(self, day: int):
         """
@@ -136,11 +138,6 @@ class Simulation:
         F_t = total_profit / np.sqrt(self.T)
         return F_t
 
-    def set_genetic_algorithm(self, genetic_algorithm: Any):
-        """
-        Ustawia instancję algorytmu genetycznego, która będzie wykorzystywana do ewolucji strategii agentów.
-        """
-        self.genetic_algorithm = genetic_algorithm
 
     def evolve_agents(self):
         """
