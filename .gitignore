@@ -3,3 +3,4 @@ __pychache__/
 __pycache__
 data/*
 data/
+.idea*
