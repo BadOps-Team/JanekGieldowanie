@@ -1,43 +1,57 @@
 import random
+from collections import defaultdict
+
 
 class Agent:
-    def __init__(self, asset, minimum_holding_period, probabil_distribution = lambda: random.uniform(0, 1), max_loss=20, strategy='basic', minimum_bought=5):
-        self.START_ASSET = asset # const
+    def __init__(self, asset, minimum_holding_period, probability_distribution=lambda: random.uniform(0, 1), max_loss=0.2, strategy='basic',
+                 minimum_bought=5, stop_loss=0.9, take_profit=1.2):
+        self.START_ASSET = asset  # const
         self.curr_asset = asset
-        self.probabil_distribution = probabil_distribution
-        self.max_loss = max_loss # (0-1)
+        self.probability_distribution = probability_distribution
+        self.max_loss = max_loss
         self.profit = 0
         self.minimum_holding_period = minimum_holding_period
-        self.bought = {} # do trackingu, po jakiej cenie kupil i w jakim dniu, aby obliczyc profit
+        self.bought = defaultdict(list)
         self.strategy = strategy
         self.minimum_bought = minimum_bought
+        self.stop_loss = stop_loss
+        self.take_profit = take_profit
 
     def make_decision(self, current_prices: dict, day: int) -> dict:
-        # gamblujemy czy kupujemy es
-        while True:
-            ticker = random.choice(list(current_prices.keys()))
-            if ticker not in self.bought:
+        decisions = {}
+
+
+        while sum(len(v) for v in self.bought.values()) < self.minimum_bought:
+            ticker = random.choice(list(current_prices.keys())) # gamblujemy decyzje es
+            if self.curr_asset >= current_prices[ticker] and self.probability_distribution() < 0.5:
+                decisions[ticker] = {'action': 'buy', 'quantity': 1} # quantity?
                 break
-        if self.strategy == 'basic':
-            return {ticker: {'action': 'buy' if self.probabil_distribution() < 0.5 else 'sell', 'quantity': 1}}
-        pass # na podstawie probabila podejmuje decyzje
+
+        for ticker, transactions in list(self.bought.items()):
+            for txn in transactions:
+                buy_price = txn['price']
+                if day - txn['day'] >= self.minimum_holding_period:
+                    if current_prices[ticker] <= buy_price * self.stop_loss and self.probability_distribution() < 0.7:
+                        decisions[ticker] = {'action': 'sell', 'quantity': txn['quantity']}
+                    elif current_prices[ticker] >= buy_price * self.take_profit and self.probability_distribution() < 0.8:
+                        decisions[ticker] = {'action': 'sell', 'quantity': txn['quantity']}
+
+        return decisions
 
     def execute_transaction(self, ticker: str, decision: dict, price: float, day: int) -> dict or None:
         if decision['action'] == 'buy':
-            if self.curr_asset < price * decision['quantity']:
-                raise ValueError(f"Cannot buy {ticker} because asset is not enough")
+            total_cost = price * decision['quantity']
+            if self.curr_asset >= total_cost:
+                self.curr_asset -= total_cost
+                self.bought[ticker].append({'day': day, 'price': price, 'quantity': decision['quantity']})
+                return {'ticker': ticker, 'action': 'buy', 'price': price, 'quantity': decision['quantity']}
 
-            self.curr_asset -= price * decision['quantity']
-            self.bought[ticker] = {'day': day, 'price': price, 'quantity': decision['quantity']} # co zrobic, gdy dokupujemy te sama, ale dzien pozniej np. w innej cenie
-            return {'ticker': ticker, 'action': decision['action'], 'price': price, 'quantity': decision['quantity']}
-
-        if decision['action'] == 'sell':
-            if self.bought[ticker]['day'] + self.minimum_holding_period < day:
-                raise ValueError(f"Cannot sell {ticker} because it is not held for minimum holding period")
-
-            self.curr_asset += price * self.bought[ticker]['quantity']
-            self.profit += self.bought[ticker]['quantity'] * (self.bought[ticker]['price'] - price)
-            return {'ticker': ticker, 'action': decision['action'], 'price': price, 'quantity': decision['quantity']}
+        elif decision['action'] == 'sell':
+            if self.bought[ticker]:
+                txn = self.bought[ticker].pop(0)  # najstarsza akcja
+                self.curr_asset += price * txn['quantity']
+                self.profit += txn['quantity'] * (price - txn['price'])
+                return {'ticker': ticker, 'action': 'sell', 'price': price, 'quantity': txn['quantity']}
 
         return None
 
@@ -45,6 +59,4 @@ class Agent:
         return self.profit
 
     def check_loss(self) -> bool:
-        if self.profit < -self.max_loss*self.START_ASSET:
-            return True
-        return False
+        return self.profit < -self.max_loss * self.START_ASSET
