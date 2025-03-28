@@ -1,221 +1,152 @@
 import sys
-
-from Stocks import StockUtility
-
 sys.path.append("..")
 
-from Agent.agent import Agent
+from Agent.agent import Agent, PDF
 
 from dataclasses import dataclass
 import numpy as np
 from typing import Self
+import scipy
 import random
 
 @dataclass
-class GASettings:
-    children_ratio: float = 0.3
-    crossover_imbalance: float = 0.25
-    float_mutation_variance: float = 0.1
-    rotation_size_variance: float = 1
-    rotation_shift_variance: float = 1
-    mutate_change_chance: float = 0.5
-    mutate_rotate_chance: float = 0.5
-    crossover_point_amount: int = 2
-    crossover_point_chance: float = 0.5
-
-@dataclass
-class Gene:
-    content: list[float]
-
-    @staticmethod
-    def mutate_float(value: float, settings) -> float:
-        return value + float(np.random.normal(0, settings.float_mutation_variance))
-
-    def mutate_change(self, settings):
-        i = random.randrange(len(self.content))
-        self.content[i] = self.mutate_float(self.content[i], settings)
-
-    def mutate_rotate(self, settings):
-        new_content = self.content.copy()
-        start = random.randrange(len(self.content))
-        size = int(np.random.lognormal(0, settings.rotation_size_variance))
-        shift = int(np.random.lognormal(0, settings.rotation_shift_variance))
-        if size == 1:
-            return
-
-        for i in range(size):
-            cur_pos = (start+i) % len(self.content)
-            target_pos = (cur_pos+shift) % len(self.content)
-            if i >= size-shift:
-                target_pos = (target_pos+len(self.content)-size) % len(self.content)
-
-            new_content[cur_pos] = self.content[target_pos]
-        
-        self.content = new_content
-
-    def mutate(self, settings):
-        if np.random.random() < settings.mutate_change_chance:
-            self.mutate_change(settings)
-        if np.random.random() < settings.mutate_rotate_chance:
-            self.mutate_rotate(settings)
-
-    def crossover_point(self, other: Self, settings) -> Self:
-        child1 = self.content
-        child2 = other.content
-        for _ in range(settings.crossover_point_amount):
-            point = random.randrange(len(self.content))
-
-            left1 = child1[:point]
-            right1 = child1[point:]
-            left2 = child2[:point]
-            right2 = child2[point:]
-
-            child1 = left1 + right2
-            child2 = left2 + right1
-
-        return Gene(child1) if random.random() < 0.5 else Gene(child2)
-
-    @staticmethod
-    def crossover_float(float1: float, float2: float, settings) -> float:
-        beta = np.random.uniform(-settings.crossover_imbalance, 1+settings.crossover_imbalance)
-        return float1*beta + float2*(1-beta)
-
-    def crossover_uniform(self, other: Self, settings) -> Self:
-        new_gene = Gene([0 for _ in range(len(self.content))])
-        for i in range(len(self.content)):
-            new_gene.content[i] = self.crossover_float(self.content[i], other.content[i], settings)
-        
-        return new_gene
-    
-    def crossover(self, other: Self, settings) -> Self:
-        if random.random() < settings.crossover_point_chance:
-            return self.crossover_point(other, settings)
-        else:
-            return self.crossover_uniform(other, settings)
-
-@dataclass
 class Genome:
-    sale_history: dict[str, Gene]
+    minimum_holding_period: int
+    probability_distribution: PDF
+    max_loss: float
+    minimum_bought: int
+    stop_loss: float
+    take_profit: float
 
-    def mutate(self, settings):
-        [gene.mutate(settings) for gene in self.sale_history.values()]
+    def from_agent(agent: Agent) -> Self:
+        init_dict = vars(agent)
+        init_dict = {key: init_dict[key] for key in vars(Genome.random())}
+        return Genome(**init_dict)
 
-    def crossover(self, other: Self, settings) -> Self:
-        new_genome = Genome({})
+    def to_agent(self, asset) -> Agent:
+        return Agent(asset=asset, **vars(self))
 
-        for ticker in self.sale_history.keys():
-            new_genome.sale_history[ticker] = self.sale_history[ticker].crossover(
-                other.sale_history[ticker], 
-                settings
-            )
-        
-        return new_genome
+    def random() -> Self:
+        xs = np.linspace(0, 1, 1000)
+        random_pdf = PDF(scipy.stats.norm.pdf(xs, 0.5, 0.1).tolist())
 
-    @classmethod
-    def from_agent(cls, agent: Agent) -> Self:
-        return cls(
-            sale_history={
-                ticker: Gene(content=history if isinstance(history, list) else history.content)
-                for ticker, history in agent.sale_history.items()
-            }
+        return Genome(
+            minimum_holding_period = random.randint(0, 10),
+            probability_distribution = random_pdf,
+            max_loss = np.random.uniform(0, 1),
+            minimum_bought = random.randint(0, 10),
+            stop_loss = np.random.uniform(0, 1),
+            take_profit = np.random.uniform(0, 5)
         )
-
-    def to_agent(self) -> Agent:
-        return Agent(
-            sale_history={
-                ticker: [int(round(value)) for value in gene.content]
-                for ticker, gene in self.sale_history.items()
-            }
-        )
-
-    @classmethod
-    def random(cls) -> Self:
-        return cls(
-            sale_history = {
-                'AAPL': Gene([np.random.uniform(-10, 10) for _ in range(10)]),
-                'SPOT': Gene([np.random.uniform(-10, 10) for _ in range(10)])
-            }
-        )
-
-    @classmethod
-    def warm_start(cls, stocks: list[tuple[str, StockUtility]], historical_prices: dict[str, list[float]],
-                   forecast_days: int, start_asset: float, max_actions_per_day_bought: int, max_actions_per_day_sold: int) -> Self:
-        sale_history = {ticker: [] for ticker, _ in stocks}
-        curr_asset = start_asset
-        inventory = {ticker: 0 for ticker, _ in stocks}
-
-        predictions = {
-            ticker: next(stock_utility.get_estimations()).estimated_prices[:forecast_days]
-            for ticker, stock_utility in stocks
-        }
-
-        last_known_prices = {
-            ticker: historical_prices[ticker][-1]
-            for ticker, _ in stocks
-        }
-
-        for day in range(forecast_days):
-            tickers_shuffled = stocks[:]
-            random.shuffle(tickers_shuffled)  # tutaj losujemy kolejność tickerów na każdy dzień
-
-            for ticker, _ in tickers_shuffled:
-                prev_price = last_known_prices[ticker] if day == 0 else predictions[ticker][day - 1]
-                future_price = predictions[ticker][day]
-
-                price_change_ratio = (future_price - prev_price) / prev_price
-                action = 0
-
-                if price_change_ratio > 0.001:
-                    max_affordable = int(curr_asset / prev_price)
-                    if max_affordable > 0:
-                        # TODO estimate amount of actions
-                        action = random.randint(1, min(max_affordable, max_actions_per_day_bought))
-                        curr_asset -= action * prev_price
-                        inventory[ticker] += action
-
-                elif price_change_ratio < -0.0001 and inventory[ticker] > 0:
-                    # TODO estimate amount of actions
-                    action = -random.randint(1, min(inventory[ticker], max_actions_per_day_sold))
-                    curr_asset -= action * prev_price
-                    inventory[ticker] += action
-
-                sale_history[ticker].append(action)
-
-        sale_history = {ticker: Gene(actions) for ticker, actions in sale_history.items()}
-
-        return cls(sale_history=sale_history)
-
 
 class GeneticAlgorithm:
-    def __init__(self, settings=GASettings()):
-        self.settings = settings
+    def __init__(
+        self, 
+        children_ratio: float = 0.3,
+        crossover_imbalance: float = 0.25,
+        float_mutation_variance: float = 0.1,
+        int_mutation_variance: float = 5,
+        pdf_mutation_variance: float = 0.1,
+        chromosome_mutation_chance: float = 0.05
+    ):
+        self.children_ratio = children_ratio
+        self.crossover_imbalance = crossover_imbalance
+        self.float_mutation_variance = float_mutation_variance
+        self.int_mutation_variance = int_mutation_variance
+        self.pdf_mutation_variance = pdf_mutation_variance
+        self.chromosome_mutation_chance = chromosome_mutation_chance
 
-    def evolve(self, agents: list[Agent]) -> list[Agent]:
-        fitness = [agent.profit for agent in agents]
-        sum_fitness = sum(fitness)
-        if sum_fitness == 0:
-            agents_next = []
-            for agent in agents:
-                child = Genome.from_agent(agent)
-                child.mutate(self.settings)
-                agents_next.append(child.to_agent())
-            return agents_next
+    def crossover_float(self, float1: float, float2: float) -> float:
+        beta = np.random.uniform(-self.crossover_imbalance, 1+self.crossover_imbalance)
+        return float1*beta + float2*(1-beta)
 
-        # Normalizacja fitness
-        fitness = [f / sum_fitness for f in fitness]
+    def crossover_int(self, int1: int, int2: int) -> int:
+        return round(self.crossover_float(int1, int2))
 
-        # Generowanie dzieci
+    def crossover_pdf(self, pdf1: PDF, pdf2: PDF) -> PDF:
+        crossed_points = [self.crossover_float(float1, float2) for float1, float2 in zip(pdf1.function, pdf2.function)]
+        return PDF(crossed_points)
+
+    def crossover(self, parent1: Genome, parent2: Genome) -> Genome:
+        return Genome(
+            minimum_holding_period = self.crossover_int(parent1.minimum_holding_period, parent2.minimum_holding_period),
+            probability_distribution = self.crossover_pdf(parent1.probability_distribution, parent2.probability_distribution),
+            max_loss = self.crossover_float(parent1.max_loss, parent2.max_loss),
+            minimum_bought = self.crossover_int(parent1.minimum_bought, parent2.minimum_bought),
+            stop_loss = self.crossover_float(parent1.stop_loss, parent2.stop_loss),
+            take_profit = self.crossover_float(parent1.take_profit, parent2.take_profit)
+        )
+
+    def mutate_float(self, value: float) -> float:
+        if np.random.random() < self.chromosome_mutation_chance:
+            return value + np.random.normal(0, self.float_mutation_variance)
+        else:
+            return value
+
+    def mutate_int(self, value: int) -> int:
+        if np.random.random() < self.chromosome_mutation_chance:
+            return value + round(np.random.normal(0, self.int_mutation_variance))
+        else:
+            return value
+
+    def mutate_pdf(self, value: PDF) -> PDF:
+        if np.random.random() < self.chromosome_mutation_chance:
+            xs = np.linspace(0, 1, 1000)
+            mutate_pdf = PDF(scipy.stats.norm.pdf(xs, 0.5, 0.1))
+            return self.crossover_pdf(value, mutate_pdf)
+        else:
+            return value
+    
+    def mutate(self, agent: Genome) -> Genome:
+        return Genome(
+            minimum_holding_period = self.mutate_int(agent.minimum_holding_period),
+            probability_distribution = self.mutate_pdf(agent.probability_distribution),
+            max_loss = self.mutate_float(agent.max_loss),
+            minimum_bought = self.mutate_int(agent.minimum_bought),
+            stop_loss = self.mutate_float(agent.stop_loss),
+            take_profit = self.mutate_float(agent.take_profit)
+        )
+
+    def evolve(self, start_asset, agents: list[Agent]) -> list[Agent]:
+        fitness = [agent.get_total_profit() for agent in agents]
+        fitness = [el/sum(fitness) for el in fitness]
+
         children = []
-        children_size = int(len(agents) * self.settings.children_ratio)
-        while len(children) < children_size:
-            parent1 = Genome.from_agent(np.random.choice(agents, p=fitness))
-            parent2 = Genome.from_agent(np.random.choice(agents, p=fitness))
-            child = parent1.crossover(parent2, self.settings)
-            child.mutate(self.settings)
-            children.append(child.to_agent())
+        children_size = int(len(agents)*self.children_ratio)
+        while len(children) < children_size: 
+            parent1 = np.random.choice(agents, p=fitness)
+            parent2 = np.random.choice(agents, p=fitness)
 
-        # Selekcja przetrwałych
-        alive_size = len(agents) - len(children)
-        alive = np.random.choice(agents, size=alive_size, p=fitness).tolist()
+            child = self.crossover(parent1, parent2)
+            child = self.mutate(child)
+            children.append(child.to_agent(start_asset))
+        
+        alive_size = len(agents)-len(children)
+        alive = np.random.choice(
+            agents, 
+            size=alive_size,
+            replace=False,
+            p=fitness
+        ).tolist()
 
         return alive + children
+
+# Tak to powinno działać
+if __name__ == '__main__':
+    size = 100
+    agents = []
+    for _ in range(size):
+        agent = Agent(asset='abc', **vars(Genome.random()))
+        agent.profit = random.randint(0, 10)
+        agents.append(agent)
+
+    GA = GeneticAlgorithm()
+
+    for agent in agents:
+        print(f'{agent.profit}, {agent.max_loss}, {agent.stop_loss}')
+
+    agents = GA.evolve('abc', agents)
+    
+    print()
+    for agent in agents:
+        print(f'{agent.profit}, {agent.max_loss}, {agent.stop_loss}, {agent.probability_distribution()}')
