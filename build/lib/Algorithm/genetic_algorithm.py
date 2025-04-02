@@ -1,0 +1,2 @@
+class GeneticAlgorithm:
+    pass
