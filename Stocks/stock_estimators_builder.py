@@ -10,28 +10,27 @@ class EstimatorStrategy(Enum):
 
 class EstimatorBuilder:
     def __init__(self) -> None:
-        self.strategy = None
-        self.stock_util = None
+        pass
     
     @staticmethod
     def create_builder() -> Self:
         return EstimatorBuilder()
 
     def with_startegy(self, strategy: EstimatorStrategy) -> Self:
-        self.strategy = strategy
+        self.strategy_ = strategy
         return self
     
     def with_stock_util(self, stock_util: StockUtility) -> Self:
-        self.stock_util = stock_util
+        self.stock_util_ = stock_util
         return self
     
     def build(self) -> StockPriceEstimator:
-        match self.strategy:
+        match self.strategy_:
             case EstimatorStrategy.METHOD_OF_MOMENTS:
-                return MethodOfMomentsEstimator(self.stock_util)
+                return MethodOfMomentsEstimator(self.stock_util_)
             case EstimatorStrategy.MAXIMUM_LIKELIHOOD:
-                return MaximumLikelihoodEstimator(self.stock_util)
+                return MaximumLikelihoodEstimator(self.stock_util_)
             case EstimatorStrategy.LEAST_SQUARE_METHOD:
-                return LeastSqaureMethodEstimator(self.stock_util)
+                return LeastSqaureMethodEstimator(self.stock_util_)
             case _:
                 raise NotImplementedError()
