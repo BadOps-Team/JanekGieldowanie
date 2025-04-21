@@ -61,5 +61,5 @@ class StockUtility:
             case _: raise NotImplementedError('Only csv format is supported')
 
     @staticmethod
-    def create_config(json_content: str) -> None:
+    def create_config(json_content: dict) -> None:
         StockUtility._ESTIMATION_CONFIG = EstimationConfig.from_json(json_content=json_content)

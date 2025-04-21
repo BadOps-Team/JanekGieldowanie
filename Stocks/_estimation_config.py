@@ -20,7 +20,7 @@ class EstimationConfig:
         return range(data_length - self.estimation_period)
 
     @classmethod
-    def from_json(cls, json_content: str) -> Self:
+    def from_json(cls, json_content: dict) -> Self:
         return cls(
             start_date=date.fromisoformat(json_content['start_date']),
             forecast_days=json_content['forecast_days'],

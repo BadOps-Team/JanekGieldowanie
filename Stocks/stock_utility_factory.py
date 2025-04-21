@@ -11,7 +11,7 @@ class StockUtilityFactory:
             json_config = json.load(f)
             StockUtility.create_config(json_config)
 
-    def create_stock_utilty(self, stock_name: str) -> StockUtility:
+    def create_stock_utility(self, stock_name: str) -> StockUtility:
         estimator = (EstimatorBuilder
                     .create_builder()
                     .with_startegy(self.strategy)
