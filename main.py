@@ -6,11 +6,13 @@ def main():
     stock_factory = StockUtilityFactory(EstimatorStrategy.METHOD_OF_MOMENTS, 'config.json')
     
     apple_stock = stock_factory.create_stock_utilty('AAPL')
-    
+    flag = True
     start = time() 
     for estimation in apple_stock.get_estimations():
         #print(estimation)
-        pass
+        if flag:
+            print(estimation)
+            flag = False
     
     print(f'total time: {time()-start}')
 
