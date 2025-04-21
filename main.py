@@ -1,21 +1,18 @@
-from Stocks.period import Period
-from datetime import date
-from Stocks.stock_utility import StockUtility
-from Stocks.stock_estimators_builder import *
+from Stocks import StockUtilityFactory
+from Stocks.estimators import EstimatorStrategy
+from time import time
 
 def main():
-    period = Period(date(2019, 1, 1), date(2020, 1, 1)) 
-    print(period)
-    apple_stock =  StockUtility('AAPL')
-    apple_data = apple_stock.get_historical_data(period=period)
-    print(apple_data.Close)
-    estimator = (EstimatorBuilder.create_builder()
-                 .with_startegy(EstimatorStrategy.METHOD_OF_MOMENTS)
-                 .with_stock_util(apple_stock)
-                 .build())
-    results = estimator.estimate_from_historic(period, 10)
-    print(results)
+    stock_factory = StockUtilityFactory(EstimatorStrategy.METHOD_OF_MOMENTS, 'config.json')
     
+    apple_stock = stock_factory.create_stock_utilty('AAPL')
+    
+    start = time() 
+    for estimation in apple_stock.get_estimations():
+        #print(estimation)
+        pass
+    
+    print(f'total time: {time()-start}')
 
 if __name__ == "__main__":
     main()

@@ -1,0 +1,6 @@
+{
+    "start_date": "2020-01-01",
+    "forecast_days": 7,
+    "estimation_period": 14,
+    "simulation_length": 365
+}
