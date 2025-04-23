@@ -4,7 +4,7 @@ import numpy as np
 
 class Agent:
     def __init__(self, asset, minimum_holding_period, probability_distribution=lambda: random.uniform(0, 1), max_loss=0.2, strategy='basic',
-                 minimum_bought=5, stop_loss=0.9, take_profit=1.2, history_length = 10):
+                 minimum_bought=5, stop_loss=0.9, take_profit=1.2):
         self.START_ASSET = asset  # const
         self.curr_asset = asset
         self.probability_distribution = probability_distribution
@@ -16,54 +16,43 @@ class Agent:
         self.minimum_bought = minimum_bought
         self.stop_loss = stop_loss
         self.take_profit = take_profit
-        self.history_length = history_length
-        self.history_prices = defaultdict(list)
 
-    def update_history(self, current_prices: dict):
-        for ticker, price in current_prices.items():
-            self.history_prices[ticker].append(price)
-            if len(self.history_prices[ticker]) > self.history_length:
-                self.history_prices[ticker].pop(0)
-
-    @staticmethod
-    def calculate_eigenvalues(sigma): # musi być macierz kwadratowa!!!
-        return np.linalg.eigvalsh(sigma)
-
-    def create_sigma_matrix(self):
-        sigma = []
-        for i, (ticker, prices) in enumerate(self.history_prices):
-            sigma.append(prices)
-            if len(prices) < self.history_length:
-                for _ in range(self.history_length - len(prices)):
-                    sigma[i].append(0)
-
-        for _ in range(self.history_length - len(sigma)):
-            sigma.append(np.zeros(self.history_length))
-
-        return sigma
-
-    def calculate_F(self, X_prime: list):
-        t = len(X_prime)
-        if t == 0:
-            return 0
-        return np.sum(X_prime) / np.sqrt(t)
-
-    def make_decision(self, current_prices: dict, day: int) -> dict:
+    # estimated prices postaci {"TICKER1": [array_of_prices],
+    #                          {"TICKER2": [array]...}
+    # current prices podobnie, {"TICKER1": current_price,
+    #                          {"TICKER2": current_price...}
+    def make_decision(self, current_prices: dict, estimated_prices: dict, day: int) -> dict:
         decisions = {}
 
-        while sum(len(v) for v in self.bought.values()) < self.minimum_bought:
-            ticker = random.choice(list(current_prices.keys())) # gamblujemy decyzje es
-            if self.curr_asset >= current_prices[ticker] and self.probability_distribution() < 0.5:
-                decisions[ticker] = {'action': 'buy', 'quantity': 1} # quantity?
-                break
+        for ticker, future_prices in estimated_prices.items():
+            if not future_prices:
+                continue
+
+            current_estimated_price = current_prices[ticker]
+            max_future_price = max(future_prices)
+
+            # jesli potencjalny zysk spelnia nasze oczekiwania, to kupujemy
+            if max_future_price >= current_estimated_price * self.take_profit:
+                quantity = 1
+                total_cost = current_estimated_price * quantity
+                if self.curr_asset >= total_cost and self.probability_distribution() < 0.8:
+                    decisions[ticker] = {'action': 'buy', 'quantity': quantity}
 
         for ticker, transactions in list(self.bought.items()):
+            if not estimated_prices.get(ticker):
+                continue
+            current_estimated_price = current_prices[ticker]
+            min_future_price = min(estimated_prices[ticker])
+            max_future_price = max(estimated_prices[ticker])
+
             for txn in transactions:
                 buy_price = txn['price']
                 if day - txn['day'] >= self.minimum_holding_period:
-                    if current_prices[ticker] <= buy_price * self.stop_loss and self.probability_distribution() < 0.7:
+                    # jesli spodziewamy sie duzej straty, sprzedajemy
+                    if min_future_price <= buy_price * self.stop_loss and self.probability_distribution() < 0.7:
                         decisions[ticker] = {'action': 'sell', 'quantity': txn['quantity']}
-                    elif current_prices[ticker] >= buy_price * self.take_profit and self.probability_distribution() < 0.8:
+                    # sprawdzamy, czy juz zarobilismy ile chcielismy oraz czy nie oplaca sie czekac jeszcze chwile
+                    elif current_estimated_price >= buy_price * self.take_profit and current_estimated_price > max_future_price and self.probability_distribution() < 0.8:
                         decisions[ticker] = {'action': 'sell', 'quantity': txn['quantity']}
 
         return decisions
