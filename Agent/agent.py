@@ -1,10 +1,9 @@
 import random
 from collections import defaultdict
-import numpy as np
 
 class Agent:
-    def __init__(self, asset, minimum_holding_period, probability_distribution=lambda: random.uniform(0, 1), max_loss=0.2, strategy='basic',
-                 minimum_bought=5, stop_loss=0.9, take_profit=1.2):
+    def __init__(self, asset, minimum_holding_period, strategy='basic', max_loss=0.2,
+                 probability_distribution=lambda: random.uniform(0, 1)):
         self.START_ASSET = asset  # const
         self.curr_asset = asset
         self.probability_distribution = probability_distribution
@@ -13,9 +12,20 @@ class Agent:
         self.minimum_holding_period = minimum_holding_period
         self.bought = defaultdict(list)
         self.strategy = strategy
-        self.minimum_bought = minimum_bought
-        self.stop_loss = stop_loss
-        self.take_profit = take_profit
+        self.stop_loss = 0
+        self.take_profit = 0
+        self.set_strategy_thresholds()
+
+    def set_strategy_thresholds(self):
+        if self.strategy == 'basic':
+            self.stop_loss = 0.9
+            self.take_profit = 1.2
+        elif self.strategy == 'risky':
+            self.stop_loss = 0.8
+            self.take_profit = 1.4
+        elif self.strategy == 'soft':
+            self.stop_loss = 0.95
+            self.take_profit = 1.1
 
     # estimated prices postaci {"TICKER1": [array_of_prices],
     #                          {"TICKER2": [array]...}
@@ -57,13 +67,15 @@ class Agent:
 
         return decisions
 
-    def execute_transaction(self, ticker: str, decision: dict, price: float, day: int) -> dict or None:
+    def execute_transaction(self, ticker: str, decision: dict, price: float, day: int) -> dict:
         if decision['action'] == 'buy':
             total_cost = price * decision['quantity']
             if self.curr_asset >= total_cost:
                 self.curr_asset -= total_cost
                 self.bought[ticker].append({'day': day, 'price': price, 'quantity': decision['quantity']})
                 return {'ticker': ticker, 'action': 'buy', 'price': price, 'quantity': decision['quantity']}
+            else:
+                raise ValueError("Not enough assets to buy the requested quantity")
 
         elif decision['action'] == 'sell':
             if self.bought[ticker]:
@@ -72,10 +84,11 @@ class Agent:
                 self.profit += txn['quantity'] * (price - txn['price'])
                 return {'ticker': ticker, 'action': 'sell', 'price': price, 'quantity': txn['quantity']}
 
-        return None
+        raise ValueError("Invalid decision")
 
     def get_total_profit(self) -> float:
         return self.profit
 
+    # gdy utracimy juz dane startowe pieniadze, przerywamy gre
     def check_loss(self) -> bool:
         return self.profit < -self.max_loss * self.START_ASSET
