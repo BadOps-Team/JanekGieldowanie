@@ -43,23 +43,22 @@ class Simulation:
             if self.agent.check_loss():
                 break
 
-        # Hard stop: liquidate remaining positions at last known price
+                # Hard stop: liquidate remaining positions at last known price
         if estimations:
             # determine last price map
-            last_prices = {self.stock_utility.stock_name: estimations[-1].estimated_prices[-1]}
+            last_price = estimations[-1].estimated_prices[-1]
             for ticker, txns in list(self.agent.bought.items()):
-                for txn in txns:
-                    sell_price = last_prices.get(ticker, last_prices[self.stock_utility.stock_name])
+                # iterate over a copy so popping doesn't skip entries
+                for txn in txns.copy():
                     decision = {'action': 'sell', 'quantity': txn['quantity']}
                     tx = self.agent.execute_transaction(
                         ticker=ticker,
                         decision=decision,
-                        price=sell_price,
+                        price=last_price,
                         day=length - 1
                     )
                     results.append(tx)
-            # clear bought
-            self.agent.bought.clear()
+            # no need to manually clear; execute_transaction removes each txn
 
         self.summarize_results(results)
         return results
