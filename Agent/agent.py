@@ -35,35 +35,63 @@ class Agent:
         decisions = {}
 
         for ticker, future_prices in estimated_prices.items():
-            if not future_prices:
+            if future_prices is None or len(future_prices) == 0:
+                print(f"[DEBUG] {ticker}: no future prices → skip")
                 continue
 
-            current_estimated_price = current_prices[ticker]
-            max_future_price = max(future_prices)
+            current = current_prices[ticker]
+            max_future = max(future_prices)
+            threshold = current * self.take_profit
 
-            # jesli potencjalny zysk spelnia nasze oczekiwania, to kupujemy
-            if max_future_price >= current_estimated_price * self.take_profit:
+            # Debug output for buy condition
+            print(f"[DEBUG][BUY CHECK] {ticker=} day={day}  current={current:.2f}  "
+                  f"max_future={max_future:.2f}  "
+                  f"take_profit={self.take_profit:.2f}  threshold={threshold:.2f}")
+
+            if max_future >= threshold:
                 quantity = 1
-                total_cost = current_estimated_price * quantity
-                if self.curr_asset >= total_cost and self.probability_distribution() < 0.8:
+                cost = current * quantity
+                prob = self.probability_distribution()
+                print(f"[DEBUG][BUY ELIGIBLE] {ticker=} cost={cost:.2f}  asset={self.curr_asset:.2f}  "
+                      f"prob={prob:.2f}")
+                if self.curr_asset >= cost and prob < 0.8:
+                    print(f"[DEBUG][BUY] executing buy {ticker} @ {current:.2f}")
                     decisions[ticker] = {'action': 'buy', 'quantity': quantity}
+                else:
+                    print(f"[DEBUG][BUY SKIP] insufficient funds or prob too high")
 
         for ticker, transactions in list(self.bought.items()):
-            if not estimated_prices.get(ticker):
+            if ticker not in estimated_prices or estimated_prices[ticker] is None:
                 continue
-            current_estimated_price = current_prices[ticker]
-            min_future_price = min(estimated_prices[ticker])
-            max_future_price = max(estimated_prices[ticker])
+
+            current = current_prices[ticker]
+            min_future = min(estimated_prices[ticker])
+            max_future = max(estimated_prices[ticker])
 
             for txn in transactions:
                 buy_price = txn['price']
-                if day - txn['day'] >= self.minimum_holding_period:
-                    # jesli spodziewamy sie duzej straty, sprzedajemy
-                    if min_future_price <= buy_price * self.stop_loss and self.probability_distribution() < 0.7:
-                        decisions[ticker] = {'action': 'sell', 'quantity': txn['quantity']}
-                    # sprawdzamy, czy juz zarobilismy ile chcielismy oraz czy nie oplaca sie czekac jeszcze chwile
-                    elif current_estimated_price >= buy_price * self.take_profit and current_estimated_price > max_future_price and self.probability_distribution() < 0.8:
-                        decisions[ticker] = {'action': 'sell', 'quantity': txn['quantity']}
+                held = day - txn['day'] >= self.minimum_holding_period
+
+                if not held:
+                    continue
+
+                # Debug output for sell conditions
+                print(f"[DEBUG][SELL CHECK] {ticker=} day={day}  buy_price={buy_price:.2f}  "
+                      f"current={current:.2f}  min_future={min_future:.2f}  "
+                      f"max_future={max_future:.2f}  stop_loss={self.stop_loss:.2f}  "
+                      f"take_profit={self.take_profit:.2f}")
+
+                prob = self.probability_distribution()
+                # stop-loss
+                if min_future <= buy_price * self.stop_loss and prob < 0.7:
+                    print(f"[DEBUG][SELL STOP-LOSS] selling {ticker} @ {current:.2f}")
+                    decisions[ticker] = {'action': 'sell', 'quantity': txn['quantity']}
+                # take-profit
+                elif current >= buy_price * self.take_profit and current > max_future and prob < 0.8:
+                    print(f"[DEBUG][SELL TAKE-PROFIT] selling {ticker} @ {current:.2f}")
+                    decisions[ticker] = {'action': 'sell', 'quantity': txn['quantity']}
+                else:
+                    print(f"[DEBUG][HOLD] continuing to hold {ticker}")
 
         return decisions
 
