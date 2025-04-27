@@ -13,7 +13,7 @@ class GeneticAlgorithm:
     def random_strategy(self):
         return {
             'stop_loss': random.uniform(0.7, 0.95),
-            'take_profit': random.uniform(1.05, 1.5)
+            'take_profit': random.uniform(1.00, 1.10)  # allow 1.00–1.10
         }
 
     def evaluate_fitness(self, agent, stock_utility):
