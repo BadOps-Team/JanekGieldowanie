@@ -11,30 +11,35 @@ import random
 
 @dataclass
 class Genome:
-    minimum_holding_period: int
     probability_distribution: PDF
-    max_loss: float
-    minimum_bought: int
     stop_loss: float
     take_profit: float
 
     def from_agent(agent: Agent) -> Self:
-        init_dict = vars(agent)
-        init_dict = {key: init_dict[key] for key in vars(Genome.random())}
-        return Genome(**init_dict)
+        return Genome(
+            probability_distribution = agent.probability_distribution,
+            stop_loss = agent.stop_loss,
+            take_profit = agent.take_profit
+        )
 
     def to_agent(self, asset) -> Agent:
-        return Agent(asset=asset, **vars(self))
+        agent = Agent(
+            asset=asset,
+            minimum_holding_period=1
+        )
+
+        agent.probability_distribution = self.probability_distribution
+        agent.stop_loss = self.stop_loss
+        agent.take_profit = self.take_profit
+
+        return agent
 
     def random() -> Self:
         xs = np.linspace(0, 1, 1000)
         random_pdf = PDF(scipy.stats.norm.pdf(xs, 0.5, 0.1).tolist())
 
         return Genome(
-            minimum_holding_period = random.randint(0, 10),
             probability_distribution = random_pdf,
-            max_loss = np.random.uniform(0, 1),
-            minimum_bought = random.randint(0, 10),
             stop_loss = np.random.uniform(0, 1),
             take_profit = np.random.uniform(0, 5)
         )
@@ -69,10 +74,7 @@ class GeneticAlgorithm:
 
     def crossover(self, parent1: Genome, parent2: Genome) -> Genome:
         return Genome(
-            minimum_holding_period = self.crossover_int(parent1.minimum_holding_period, parent2.minimum_holding_period),
             probability_distribution = self.crossover_pdf(parent1.probability_distribution, parent2.probability_distribution),
-            max_loss = self.crossover_float(parent1.max_loss, parent2.max_loss),
-            minimum_bought = self.crossover_int(parent1.minimum_bought, parent2.minimum_bought),
             stop_loss = self.crossover_float(parent1.stop_loss, parent2.stop_loss),
             take_profit = self.crossover_float(parent1.take_profit, parent2.take_profit)
         )
@@ -99,10 +101,7 @@ class GeneticAlgorithm:
     
     def mutate(self, agent: Genome) -> Genome:
         return Genome(
-            minimum_holding_period = self.mutate_int(agent.minimum_holding_period),
             probability_distribution = self.mutate_pdf(agent.probability_distribution),
-            max_loss = self.mutate_float(agent.max_loss),
-            minimum_bought = self.mutate_int(agent.minimum_bought),
             stop_loss = self.mutate_float(agent.stop_loss),
             take_profit = self.mutate_float(agent.take_profit)
         )
@@ -136,7 +135,7 @@ if __name__ == '__main__':
     size = 100
     agents = []
     for _ in range(size):
-        agent = Agent(asset='abc', **vars(Genome.random()))
+        agent = Genome.random().to_agent('abc')
         agent.profit = random.randint(0, 10)
         agents.append(agent)
 
