@@ -5,7 +5,7 @@ from Agent.agent import Agent
 
 from dataclasses import dataclass
 import numpy as np
-from typing import Self
+from typing import Self, Type
 import scipy
 import random
 
@@ -57,15 +57,20 @@ class Gene:
             self.mutate_rotate(settings)
 
     def crossover_point(self, other: Self, settings) -> Self:
-        our = self.content.copy()
-        other = other.content.copy()
+        child1 = self.content
+        child2 = other.content
         for _ in range(settings.crossover_point_amount):
-            point = random.randrange(1, len(self.content))
-            tmp = our.copy()
-            our = our[:point] + other[point:]
-            other = other[:point] + tmp[point:]
+            point = random.randrange(len(self.content))
 
-        return Gene(our) if random.random() < 0.5 else Gene(other)
+            left1 = child1[:point]
+            right1 = child1[point:]
+            left2 = child2[:point]
+            right2 = child2[point:]
+
+            child1 = left1 + right2
+            child2 = left2 + right1
+
+        return Gene(child1) if random.random() < 0.5 else Gene(child2)
     
     def crossover_float(self, float1: float, float2: float, settings) -> float:
         beta = np.random.uniform(-settings.crossover_imbalance, 1+settings.crossover_imbalance)
@@ -148,6 +153,10 @@ class GeneticAlgorithm:
 
 # Tak to powinno działać
 if __name__ == '__main__':
+    # gene1 = Gene([1,1,1,1,1,1,1])
+    # gene2 = Gene([9,9,9,9,9,9,9])
+    # print(gene1.crossover_point(gene2, GASettings()))
+
     size = 100
     agents = []
     for _ in range(size):
