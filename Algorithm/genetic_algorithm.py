@@ -5,8 +5,7 @@ from Agent.agent import Agent
 
 from dataclasses import dataclass
 import numpy as np
-from typing import Self, Type
-import scipy
+from typing import Self
 import random
 
 @dataclass
@@ -25,7 +24,8 @@ class GASettings:
 class Gene:
     content: list[float]
 
-    def mutate_float(self, value: float, settings) -> float:
+    @staticmethod
+    def mutate_float(value: float, settings) -> float:
         return value + float(np.random.normal(0, settings.float_mutation_variance))
 
     def mutate_change(self, settings):
@@ -71,13 +71,14 @@ class Gene:
             child2 = left2 + right1
 
         return Gene(child1) if random.random() < 0.5 else Gene(child2)
-    
-    def crossover_float(self, float1: float, float2: float, settings) -> float:
+
+    @staticmethod
+    def crossover_float(float1: float, float2: float, settings) -> float:
         beta = np.random.uniform(-settings.crossover_imbalance, 1+settings.crossover_imbalance)
         return float1*beta + float2*(1-beta)
 
     def crossover_uniform(self, other: Self, settings) -> Self:
-        new_gene = Gene([None for _ in range(len(self.content))])
+        new_gene = Gene([0 for _ in range(len(self.content))])
         for i in range(len(self.content)):
             new_gene.content[i] = self.crossover_float(self.content[i], other.content[i], settings)
         
@@ -107,16 +108,18 @@ class Genome:
         
         return new_genome
 
-    def from_agent(agent: Agent) -> Self:
-        return Genome(
-            sale_history = agent.sale_history,
+    @classmethod
+    def from_agent(cls, agent: Agent) -> Self:
+        return cls(
+            sale_history=agent.sale_history,
         )
 
     def to_agent(self) -> Agent:
         return Agent(sale_history=self.sale_history)
 
-    def random() -> Self:
-        return Genome(
+    @classmethod
+    def random(cls) -> Self:
+        return cls(
             sale_history = {
                 'abc': Gene([np.random.uniform(-5, 5) for _ in range(5)]),
                 'cde': Gene([np.random.uniform(-5, 5) for _ in range(5)])
