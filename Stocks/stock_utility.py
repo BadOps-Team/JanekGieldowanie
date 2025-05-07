@@ -15,7 +15,7 @@ class StockUtility:
         self.stock_ticker: yf.Ticker = yf.Ticker(stock_name)
         self.estimator = estimator
 
-    def get_histrical_close_prices(self, period: Period) -> pd.DataFrame:
+    def get_historical_close_prices(self, period: Period) -> pd.DataFrame:
         history = self.stock_ticker.history(
             start = DateFormatter.format_date(period.start),
             end = DateFormatter.format_date(period.end)
@@ -25,7 +25,7 @@ class StockUtility:
 
     def get_estimations(self):
         data_period = StockUtility._ESTIMATION_CONFIG.data_period()
-        data = self.get_histrical_close_prices(data_period)
+        data = self.get_historical_close_prices(data_period)
 
         # adjust for weekends
         for i in StockUtility._ESTIMATION_CONFIG.estimation_range(len(data)):

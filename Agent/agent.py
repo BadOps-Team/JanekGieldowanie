@@ -1,16 +1,33 @@
+from typing import List, Dict
+
 class Agent:
-    def __init__(self, sale_history):
+    def __init__(self, sale_history: Dict[str, List[int]]):
         # Taki słownik: {
         #   'ticker1': [1, 2, -1, -2, 3] <- Tyle elementów listy ile dni, dodatni to kupno, ujemny to sprzedaż
         #   'ticker2': [9, 2, -2, 3, 0] 
         # }
         self.sale_history = sale_history
-        
         self.profit = 0
 
-    def execute(self):
-        # Tutaj odpalić to co było w sale history i ustawić profit.
-        # Jest taki problem że może próbować kupować jak nie ma pieniędzy
-        # i sprzedawać jak nie ma akcji, to ja bym mu wtedy ustawiał profit
-        # na zero albo dawał jakąś karę.
-        pass
+    def execute(self, historical_prices, start_asset):
+        curr_asset = start_asset
+        inventory = {ticker: 0 for ticker in self.sale_history}
+
+        for i in range(len(next(iter(self.sale_history.values())))):
+            for ticker, actions in self.sale_history.items():
+                action = actions[i]
+                inventory[ticker] += action
+                if inventory[ticker] < 0: # sold more actions than had
+                    self.profit = 0
+                    return
+
+                curr_asset -= historical_prices[ticker][i] * action
+            if curr_asset < 0: # bought more than could afford
+                self.profit = 0
+                return
+
+        # sell remaining inventory at last known price
+        for ticker, count in inventory.items():
+            curr_asset += historical_prices[ticker][-1] * count
+
+        self.profit = curr_asset
