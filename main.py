@@ -1,69 +1,45 @@
-import json
 import random
-from datetime import datetime
-
-from Agent.agent import Agent
 from Algorithm.genetic_algorithm import GeneticAlgorithm, Genome
 from Simulation.simulation import Simulation
-from Stocks import StockUtilityFactory, Period
+from Stocks import StockUtilityFactory
 from Stocks.estimators import EstimatorStrategy
 
 # config:
 # size - ile agentów
-# start date
-# end date - chodzi o ceny historyczne
+# dni - na ich podstawie masz obliczyc estymator
 # dni jako dni ewolucji
 # to co jest aktualnie w configu
 # (wybieranie krzyżowania ????????)
 # kapitał początkowy
 # jakie firmy lub liczba
-# parametry z algorytmu genetycznego jeszcze
-
-
-# musisz sie pobawic settingsami do stockow, bo teraz mam ustawione na sztywno zeby generowalo 100 dni,
-# ale jak lekko pozmieniam parametry to wszedzie sa errory albo pusta tablica xd
 
 def main():
-
-    with open('config.json') as f:
-        cfg = json.load(f)
-
-    size = cfg['size']
-    start_date = datetime.strptime(cfg['start_date'], '%Y-%m-%d').date()
-    end_date = datetime.strptime(cfg['end_date'], '%Y-%m-%d').date()
-    evolution_days = cfg['evolution_days']
-    forecast_days = cfg['forecast_days']
-    # estimation_period = cfg['estimation_period']
-    # simulation_length = cfg['simulation_length']
-    start_asset = cfg['start_asset']
-    tickers = cfg['stocks']
-    # ga_params = cfg['ga']
-    max_buy = cfg['max_actions_per_day']['buy']
-    max_sell = cfg['max_actions_per_day']['sell']
-
     factory = StockUtilityFactory(EstimatorStrategy.METHOD_OF_MOMENTS, 'config.json')
+    apple_stock = factory.create_stock_utilty('AAPL')
+    spotify_stock = factory.create_stock_utilty('SPOT')
+    stocks = [apple_stock, spotify_stock]
+    start_asset = 1000
+    evolution_days = 10
 
-    stocks = [(t, factory.create_stock_utilty(t)) for t in tickers]
-
-    period = Period(start_date, end_date)
-    historical_prices = {}
-    for ticker, stock_utility in stocks:
-        historical_prices[ticker] = stock_utility.get_historical_close_prices(period).tolist()
-
+    size = 100
     agents = []
-
     for _ in range(size):
-        # warm_start(stocks, historical_prices, start_asset)
-        # zostawic ten random tez do testow !!!!!!
-        # genome = Genome.random()
-        genome = Genome.warm_start(stocks, historical_prices, forecast_days, start_asset, max_buy, max_sell)
-        agent = genome.to_agent()
-        agent.execute(historical_prices=historical_prices, start_asset=start_asset)
+        agent = Genome.random().to_agent()
+        agent.profit = random.randint(0, 10) # asset
         agents.append(agent)
 
     GA = GeneticAlgorithm()
-    simulation = Simulation(agents, stocks, start_asset, evolution_days, GA, historical_prices)
+    simulation = Simulation(agents, stocks, start_asset, evolution_days, GA)
     simulation.run_simulation()
+
+    # for agent in agents:
+    #     print(f'{agent.profit} {agent.sale_history}')
+    #
+    # agents = GA.evolve(agents)
+    #
+    # print()
+    # for agent in agents:
+    #     print(f'{agent.profit} {agent.sale_history}')
 
 if __name__ == "__main__":
     main()

@@ -1,38 +1,84 @@
-from typing import List, Dict
+import datetime
+import time
+from typing import List
+
 from Agent.agent import Agent
 from Algorithm.genetic_algorithm import GeneticAlgorithm
 from Stocks import StockUtility
 
+
 class Simulation:
-    def __init__(self, agents: List[Agent], stock_utilities: List[tuple[str, StockUtility]],
-                 start_asset: int, evolution_days: int, GA: GeneticAlgorithm,
-                 historical_prices: Dict[str, List[int]]):
+    def __init__(self, agents: List[Agent], stock_utilities: List[StockUtility], start_asset: int, evolution_days: int, GA: GeneticAlgorithm):
         self.agents = agents
         self.stock_utilities = stock_utilities
         self.start_asset = start_asset
         self.evolution_days = evolution_days
         self.GA = GA
-        self.historical_prices = historical_prices
+        # dni??
+
+    def calculate_warm_start(self):
+        print(list(self.stock_utilities[0].get_estimations()))
+        # for stock_utility in self.stock_utilities:
+        #     print(list(stock_utility.get_estimations()))
+        #     time.sleep(1)
+        # prices =
+        pass
 
     def run_simulation(self):
-        best_agent = None
-        best_price = 0
-
-        for i in range(self.evolution_days):
-            self.agents = self.GA.evolve(self.agents)
-            for agent in self.agents:
-                agent.execute(historical_prices=self.historical_prices, start_asset=self.start_asset)
-
-                # assign on the very first agent, or any strictly-better profit
-                if best_agent is None or agent.profit > best_price:
-                    best_price = agent.profit
-                    best_agent = agent
-
-                print(f'{agent.profit} {agent.sale_history}')
-
-        # best_agent is now guaranteed not to be None
-        print(f'Best price: {best_price:.2f}  History: {best_agent.sale_history}')
-
+        self.calculate_warm_start()
+    #     estimations = list(self.stock_utility.get_estimations())
+    #     start_date = StockUtility._ESTIMATION_CONFIG.start_date
+    #     length = StockUtility._ESTIMATION_CONFIG.simulation_length
+    #     results = []
+    #
+    #     for day_offset in range(length):
+    #         current_prices = {}
+    #         # Build price map
+    #         for est in estimations:
+    #             ticker = self.stock_utility.stock_name
+    #             idx = min(day_offset, len(est.estimated_prices) - 1)
+    #             current_prices[ticker] = est.estimated_prices[idx]
+    #
+    #         # Decisions
+    #         decisions = self.agent.make_decision(
+    #             current_prices,
+    #             {t: est.estimated_prices for t, est in [(self.stock_utility.stock_name, est) for est in estimations]},
+    #             day_offset
+    #         )
+    #
+    #         # Execute
+    #         for ticker, decision in decisions.items():
+    #             tx = self.agent.execute_transaction(
+    #                 ticker=ticker,
+    #                 decision=decision,
+    #                 price=current_prices[ticker],
+    #                 day=day_offset
+    #             )
+    #             results.append(tx)
+    #
+    #         if self.agent.check_loss():
+    #             break
+    #
+    #             # Hard stop: liquidate remaining positions at last known price
+    #     if estimations:
+    #         # determine last price map
+    #         last_price = estimations[-1].estimated_prices[-1]
+    #         for ticker, txns in list(self.agent.bought.items()):
+    #             # iterate over a copy so popping doesn't skip entries
+    #             for txn in txns.copy():
+    #                 decision = {'action': 'sell', 'quantity': txn['quantity']}
+    #                 tx = self.agent.execute_transaction(
+    #                     ticker=ticker,
+    #                     decision=decision,
+    #                     price=last_price,
+    #                     day=length - 1
+    #                 )
+    #                 results.append(tx)
+    #         # no need to manually clear; execute_transaction removes each txn
+    #
+    #     self.summarize_results(results)
+    #     return results
+    #
     # def summarize_results(self, results):
     #     start_asset = self.agent.START_ASSET
     #     end_asset = self.agent.curr_asset
