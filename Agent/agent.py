@@ -6,7 +6,6 @@ class Agent:
         # }
         self.sale_history = sale_history
         
-        
         self.profit = 0
 
     def execute(self):
