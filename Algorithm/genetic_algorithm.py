@@ -111,18 +111,26 @@ class Genome:
     @classmethod
     def from_agent(cls, agent: Agent) -> Self:
         return cls(
-            sale_history=agent.sale_history,
+            sale_history={
+                ticker: Gene(content=history if isinstance(history, list) else history.content)
+                for ticker, history in agent.sale_history.items()
+            }
         )
 
     def to_agent(self) -> Agent:
-        return Agent(sale_history=self.sale_history)
+        return Agent(
+            sale_history={
+                ticker: [int(round(value)) for value in gene.content]
+                for ticker, gene in self.sale_history.items()
+            }
+        )
 
     @classmethod
     def random(cls) -> Self:
         return cls(
             sale_history = {
-                'abc': Gene([np.random.uniform(-5, 5) for _ in range(5)]),
-                'cde': Gene([np.random.uniform(-5, 5) for _ in range(5)])
+                'AAPL': Gene([np.random.uniform(-10, 10) for _ in range(10)]),
+                'SPOT': Gene([np.random.uniform(-10, 10) for _ in range(10)])
             }
         )
 
@@ -132,6 +140,9 @@ class GeneticAlgorithm:
 
     def evolve(self, agents: list[Agent]) -> list[Agent]:
         fitness = [agent.profit for agent in agents]
+        sum_fitness = sum(fitness)
+        if sum_fitness == 0:
+            raise ValueError("Any agent must have at least one profit greater than zero.")
         fitness = [el/sum(fitness) for el in fitness]
 
         children = []
@@ -145,35 +156,39 @@ class GeneticAlgorithm:
             children.append(child.to_agent())
         
         alive_size = len(agents)-len(children)
-        alive = np.random.choice(
-            agents, 
-            size=alive_size,
-            replace=False,
-            p=fitness
-        ).tolist()
+        # alive = np.random.choice(
+        #     agents,
+        #     size=alive_size,
+        #     replace=False,
+        #     p=fitness
+        # ).tolist()
+        #
+        # return alive + children
 
+        alive_candidates = [agent for agent, f in zip(agents, fitness) if f > 0]
+        alive_fitness = [f for f in fitness if f > 0]
+
+        # Normalize fitness again in case some were zeroed
+        total_fitness = sum(alive_fitness)
+        alive_fitness = [f / total_fitness for f in alive_fitness]
+
+        # If not enough candidates, reduce alive_size to avoid oversampling
+        alive_size = min(alive_size, len(alive_candidates))
+
+        # Optionally: keep top-performing agents (elitism)
+        top_agents = sorted(alive_candidates, key=lambda a: a.profit, reverse=True)[:alive_size]
+
+        # Randomly sample remaining survivors if needed
+        remaining = alive_size - len(top_agents)
+        sampled_agents = []
+        if remaining > 0:
+            sampled_agents = np.random.choice(
+                alive_candidates,
+                size=remaining,
+                replace=False,
+                p=alive_fitness
+            ).tolist()
+
+        # Final population
+        alive = top_agents + sampled_agents
         return alive + children
-
-# Tak to powinno działać
-if __name__ == '__main__':
-    # gene1 = Gene([1,1,1,1,1,1,1])
-    # gene2 = Gene([9,9,9,9,9,9,9])
-    # print(gene1.crossover_point(gene2, GASettings()))
-
-    size = 100
-    agents = []
-    for _ in range(size):
-        agent = Genome.random().to_agent()
-        agent.profit = random.randint(0, 10)
-        agents.append(agent)
-
-    GA = GeneticAlgorithm()
-
-    for agent in agents:
-        print(f'{agent.profit} {agent.sale_history}')
-
-    agents = GA.evolve(agents)
-    
-    print()
-    for agent in agents:
-        print(f'{agent.profit} {agent.sale_history}')
