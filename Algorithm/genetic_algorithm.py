@@ -142,7 +142,13 @@ class GeneticAlgorithm:
         fitness = [agent.profit for agent in agents]
         sum_fitness = sum(fitness)
         if sum_fitness == 0:
-            raise ValueError("Any agent must have at least one profit greater than zero.")
+            children = []
+            for agent in agents:
+                child = Genome.from_agent(agent)
+                child.mutate(self.settings)
+                children.append(child)
+            return children
+
         fitness = [el/sum(fitness) for el in fitness]
 
         children = []
@@ -156,39 +162,10 @@ class GeneticAlgorithm:
             children.append(child.to_agent())
         
         alive_size = len(agents)-len(children)
-        # alive = np.random.choice(
-        #     agents,
-        #     size=alive_size,
-        #     replace=False,
-        #     p=fitness
-        # ).tolist()
-        #
-        # return alive + children
+        alive = np.random.choice(
+            agents,
+            size=alive_size,
+            p=fitness
+        ).tolist()
 
-        alive_candidates = [agent for agent, f in zip(agents, fitness) if f > 0]
-        alive_fitness = [f for f in fitness if f > 0]
-
-        # Normalize fitness again in case some were zeroed
-        total_fitness = sum(alive_fitness)
-        alive_fitness = [f / total_fitness for f in alive_fitness]
-
-        # If not enough candidates, reduce alive_size to avoid oversampling
-        alive_size = min(alive_size, len(alive_candidates))
-
-        # Optionally: keep top-performing agents (elitism)
-        top_agents = sorted(alive_candidates, key=lambda a: a.profit, reverse=True)[:alive_size]
-
-        # Randomly sample remaining survivors if needed
-        remaining = alive_size - len(top_agents)
-        sampled_agents = []
-        if remaining > 0:
-            sampled_agents = np.random.choice(
-                alive_candidates,
-                size=remaining,
-                replace=False,
-                p=alive_fitness
-            ).tolist()
-
-        # Final population
-        alive = top_agents + sampled_agents
         return alive + children
