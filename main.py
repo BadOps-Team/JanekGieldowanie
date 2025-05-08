@@ -25,12 +25,11 @@ def warm_start(stock_utilities, historical_prices, start_asset):
     prices = {}
     for ticker, stock_utility in stock_utilities:
         prices[ticker] = list(stock_utility.get_estimations())[0].estimated_prices
+
     #jakas logika kupowania
+
     bought = {}
     print(prices)
-    #
-    # # warm start dla kazdego agenta
-    #
     agent = Agent(bought)
     agent.execute(historical_prices=historical_prices, start_asset=start_asset)
 
