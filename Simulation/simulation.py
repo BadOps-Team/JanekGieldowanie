@@ -15,21 +15,15 @@ class Simulation:
         self.historical_prices = historical_prices
 
     def run_simulation(self):
+        best_agent, best_price = None, 0
         for i in range(self.evolution_days):
             self.agents = self.GA.evolve(self.agents)
             for agent in self.agents:
                 agent.execute(historical_prices=self.historical_prices, start_asset=self.start_asset)
+                if agent.profit > best_price:
+                    best_price = agent.profit
+                    best_agent = agent
                 print(f'{agent.profit} {agent.sale_history}')
-        self.results()
-
-    def results(self):
-        best_agent, best_price = None, 0
-        for agent in self.agents:
-            agent.execute(historical_prices=self.historical_prices, start_asset=self.start_asset)
-            if agent.profit > best_price:
-                best_price = agent.profit
-                best_agent = agent
-            print(f'{agent.profit:.2f} {agent.sale_history}')
         print(f'Best price: {best_price:.2f} History: {best_agent.sale_history}')
 
     # def summarize_results(self, results):
