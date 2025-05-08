@@ -16,6 +16,7 @@ from Stocks.estimators import EstimatorStrategy
 # (wybieranie krzyżowania ????????)
 # kapitał początkowy
 # jakie firmy lub liczba
+# parametry z algorytmu genetycznego jeszcze
 
 
 # musisz sie pobawic settingsami do stockow, bo teraz mam ustawione na sztywno zeby generowalo 100 dni,
