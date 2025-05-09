@@ -1,4 +1,7 @@
 import sys
+
+from Stocks import StockUtility
+
 sys.path.append("..")
 
 from Agent.agent import Agent
@@ -134,6 +137,55 @@ class Genome:
             }
         )
 
+    @classmethod
+    def warm_start(cls, stocks: list[tuple[str, StockUtility]], historical_prices: dict[str, list[float]],
+                   forecast_days: int, start_asset: float, max_actions_per_day_bought: int, max_actions_per_day_sold: int) -> Self:
+        sale_history = {ticker: [] for ticker, _ in stocks}
+        curr_asset = start_asset
+        inventory = {ticker: 0 for ticker, _ in stocks}
+
+        predictions = {
+            ticker: next(stock_utility.get_estimations()).estimated_prices[:forecast_days]
+            for ticker, stock_utility in stocks
+        }
+
+        last_known_prices = {
+            ticker: historical_prices[ticker][-1]
+            for ticker, _ in stocks
+        }
+
+        for day in range(forecast_days):
+            tickers_shuffled = stocks[:]
+            random.shuffle(tickers_shuffled)  # tutaj losujemy kolejność tickerów na każdy dzień
+
+            for ticker, _ in tickers_shuffled:
+                prev_price = last_known_prices[ticker] if day == 0 else predictions[ticker][day - 1]
+                future_price = predictions[ticker][day]
+
+                price_change_ratio = (future_price - prev_price) / prev_price
+                action = 0
+
+                if price_change_ratio > 0.001:
+                    max_affordable = int(curr_asset / prev_price)
+                    if max_affordable > 0:
+                        # TODO estimate amount of actions
+                        action = random.randint(1, min(max_affordable, max_actions_per_day_bought))
+                        curr_asset -= action * prev_price
+                        inventory[ticker] += action
+
+                elif price_change_ratio < -0.0001 and inventory[ticker] > 0:
+                    # TODO estimate amount of actions
+                    action = -random.randint(1, min(inventory[ticker], max_actions_per_day_sold))
+                    curr_asset -= action * prev_price
+                    inventory[ticker] += action
+
+                sale_history[ticker].append(action)
+
+        sale_history = {ticker: Gene(actions) for ticker, actions in sale_history.items()}
+
+        return cls(sale_history=sale_history)
+
+
 class GeneticAlgorithm:
     def __init__(self, settings=GASettings()):
         self.settings = settings
@@ -142,30 +194,28 @@ class GeneticAlgorithm:
         fitness = [agent.profit for agent in agents]
         sum_fitness = sum(fitness)
         if sum_fitness == 0:
-            children = []
+            agents_next = []
             for agent in agents:
                 child = Genome.from_agent(agent)
                 child.mutate(self.settings)
-                children.append(child)
-            return children
+                agents_next.append(child.to_agent())
+            return agents_next
 
-        fitness = [el/sum(fitness) for el in fitness]
+        # Normalizacja fitness
+        fitness = [f / sum_fitness for f in fitness]
 
+        # Generowanie dzieci
         children = []
-        children_size = int(len(agents)*self.settings.children_ratio)
-        while len(children) < children_size: 
+        children_size = int(len(agents) * self.settings.children_ratio)
+        while len(children) < children_size:
             parent1 = Genome.from_agent(np.random.choice(agents, p=fitness))
             parent2 = Genome.from_agent(np.random.choice(agents, p=fitness))
-
             child = parent1.crossover(parent2, self.settings)
             child.mutate(self.settings)
             children.append(child.to_agent())
-        
-        alive_size = len(agents)-len(children)
-        alive = np.random.choice(
-            agents,
-            size=alive_size,
-            p=fitness
-        ).tolist()
+
+        # Selekcja przetrwałych
+        alive_size = len(agents) - len(children)
+        alive = np.random.choice(agents, size=alive_size, p=fitness).tolist()
 
         return alive + children
