@@ -23,18 +23,6 @@ from Stocks.estimators import EstimatorStrategy
 # musisz sie pobawic settingsami do stockow, bo teraz mam ustawione na sztywno zeby generowalo 100 dni,
 # ale jak lekko pozmieniam parametry to wszedzie sa errory albo pusta tablica xd
 
-def warm_start(stock_utilities, historical_prices, start_asset):
-    prices = {}
-    for ticker, stock_utility in stock_utilities:
-        prices[ticker] = list(stock_utility.get_estimations())[0].estimated_prices
-
-    #jakas logika kupowania
-
-    bought = {}
-    print(prices)
-    agent = Agent(bought)
-    agent.execute(historical_prices=historical_prices, start_asset=start_asset)
-
 def main():
 
     with open('config.json') as f:
