@@ -33,11 +33,11 @@ def main():
     end_date = datetime.strptime(cfg['end_date'], '%Y-%m-%d').date()
     evolution_days = cfg['evolution_days']
     forecast_days = cfg['forecast_days']
-    estimation_period = cfg['estimation_period']
-    simulation_length = cfg['simulation_length']
+    # estimation_period = cfg['estimation_period']
+    # simulation_length = cfg['simulation_length']
     start_asset = cfg['start_asset']
     tickers = cfg['stocks']
-    ga_params = cfg['ga']
+    # ga_params = cfg['ga']
     max_buy = cfg['max_actions_per_day']['buy']
     max_sell = cfg['max_actions_per_day']['sell']
 
