@@ -185,6 +185,7 @@ class Genome:
 
         return cls(sale_history=sale_history)
 
+    
 
 class GeneticAlgorithm:
     def __init__(self, settings=GASettings()):
