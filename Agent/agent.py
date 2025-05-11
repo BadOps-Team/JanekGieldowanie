@@ -1,9 +1,21 @@
 import random
 from collections import defaultdict
+from typing import Self
+import numpy as np
+
+class PDF:
+    def __init__(self, points: list[float]):
+        self.function = [point/sum(points) for point in points]
+
+    def __call__(self):
+        return np.random.choice(np.linspace(0, 1, 1000), p=self.function)
+
+    def uniform() -> Self:
+        return PDF(np.ones(1000))
 
 class Agent:
-    def __init__(self, asset, minimum_holding_period, strategy='basic', max_loss=0.2,
-                 probability_distribution=lambda: random.uniform(0, 1)):
+    def __init__(self, asset, minimum_holding_period, probability_distribution=PDF.uniform(), max_loss=0.2, strategy='basic',
+                 minimum_bought=5, stop_loss=0.9, take_profit=1.2):
         self.START_ASSET = asset  # const
         self.curr_asset = asset
         self.probability_distribution = probability_distribution
