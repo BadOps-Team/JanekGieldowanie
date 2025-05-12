@@ -1,0 +1,20 @@
+{
+  "size": 100,
+  "start_date": "2020-01-01",
+  "end_date": "2020-12-31",
+  "evolution_days": 10,
+  "forecast_days": 100,
+  "estimation_period": 14,
+  "simulation_length": 9,
+  "start_asset": 50000,
+  "stocks": ["AAPL", "SPOT"],
+  "ga": {
+    "crossover_rate": 0.8,
+    "mutation_rate": 0.01,
+    "generations": 50
+  },
+  "max_actions_per_day": {
+    "buy": 100,
+    "sell": 1000
+  }
+}

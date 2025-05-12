@@ -32,6 +32,7 @@ class Simulation:
 
         # best_agent is now guaranteed not to be None
         print(f'Best price: {best_price:.2f}  History: {best_agent.sale_history}')
+        return self.agents
 
     # def summarize_results(self, results):
     #     start_asset = self.agent.START_ASSET

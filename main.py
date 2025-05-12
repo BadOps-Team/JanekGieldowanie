@@ -1,5 +1,6 @@
 import json
 import random
+import sys
 from datetime import datetime
 
 from Agent.agent import Agent
@@ -23,9 +24,9 @@ from Stocks.estimators import EstimatorStrategy
 # musisz sie pobawic settingsami do stockow, bo teraz mam ustawione na sztywno zeby generowalo 100 dni,
 # ale jak lekko pozmieniam parametry to wszedzie sa errory albo pusta tablica xd
 
-def main():
+def main(name):
 
-    with open('config.json') as f:
+    with open(name) as f:
         cfg = json.load(f)
 
     size = cfg['size']
@@ -41,7 +42,7 @@ def main():
     max_buy = cfg['max_actions_per_day']['buy']
     max_sell = cfg['max_actions_per_day']['sell']
 
-    factory = StockUtilityFactory(EstimatorStrategy.METHOD_OF_MOMENTS, 'config.json')
+    factory = StockUtilityFactory(EstimatorStrategy.METHOD_OF_MOMENTS, name)
 
     stocks = [(t, factory.create_stock_utilty(t)) for t in tickers]
 
@@ -63,7 +64,8 @@ def main():
 
     GA = GeneticAlgorithm()
     simulation = Simulation(agents, stocks, start_asset, evolution_days, GA, historical_prices)
-    simulation.run_simulation()
+    agents_list = simulation.run_simulation()
+    return [{'profit': a.profit, 'history': a.sale_history} for a in agents_list]
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1])
