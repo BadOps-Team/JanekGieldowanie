@@ -188,8 +188,19 @@ class Genome:
     
 
 class GeneticAlgorithm:
-    def __init__(self, settings=GASettings()):
-        self.settings = settings
+    def __init__(self, ga_config=None):
+        self.settings = GASettings()
+        if ga_config:
+            self.settings.children_ratio = ga_config["children_ratio"]
+            self.settings.crossover_imbalance = ga_config["crossover_imbalance"]
+            self.settings.float_mutation_variance = ga_config["float_mutation_variance"]
+            self.settings.rotation_size_variance = ga_config["rotation_size_variance"]
+            self.settings.rotation_shift_variance = ga_config["rotation_shift_variance"]
+            self.settings.mutate_change_chance = ga_config["mutate_change_chance"]
+            self.settings.mutate_rotate_chance = ga_config["mutate_rotate_chance"]
+            self.settings.crossover_point_amount = ga_config["crossover_point_amount"]
+            self.settings.crossover_point_chance = ga_config["crossover_point_chance"]
+
 
     def evolve(self, agents: list[Agent]) -> list[Agent]:
         fitness = [agent.profit for agent in agents]
