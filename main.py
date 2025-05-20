@@ -62,7 +62,7 @@ def main(name):
         agent.execute(historical_prices=historical_prices, start_asset=start_asset)
         agents.append(agent)
 
-    GA = GeneticAlgorithm()
+    GA = GeneticAlgorithm(ga_params)
     simulation = Simulation(agents, stocks, start_asset, evolution_days, GA, historical_prices)
     agents_list = simulation.run_simulation()
     return [{'profit': a.profit, 'history': a.sale_history} for a in agents_list]
