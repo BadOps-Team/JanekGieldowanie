@@ -1,31 +1,13 @@
 import json
-import random
 import sys
 from datetime import datetime
 
-from Agent.agent import Agent
 from Algorithm.genetic_algorithm import GeneticAlgorithm, Genome
 from Simulation.simulation import Simulation
 from Stocks import StockUtilityFactory, Period
 from Stocks.estimators import EstimatorStrategy
 
-# config:
-# size - ile agentów
-# start date
-# end date - chodzi o ceny historyczne
-# dni jako dni ewolucji
-# to co jest aktualnie w configu
-# (wybieranie krzyżowania ????????)
-# kapitał początkowy
-# jakie firmy lub liczba
-# parametry z algorytmu genetycznego jeszcze
-
-
-# musisz sie pobawic settingsami do stockow, bo teraz mam ustawione na sztywno zeby generowalo 100 dni,
-# ale jak lekko pozmieniam parametry to wszedzie sa errory albo pusta tablica xd
-
 def main(name):
-
     with open(name) as f:
         cfg = json.load(f)
 
@@ -54,9 +36,6 @@ def main(name):
     agents = []
 
     for _ in range(size):
-        # warm_start(stocks, historical_prices, start_asset)
-        # zostawic ten random tez do testow !!!!!!
-        # genome = Genome.random()
         genome = Genome.warm_start(stocks, historical_prices, forecast_days, start_asset, max_buy, max_sell)
         agent = genome.to_agent()
         agent.execute(historical_prices=historical_prices, start_asset=start_asset)

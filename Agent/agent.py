@@ -8,6 +8,7 @@ class Agent:
         # }
         self.sale_history = sale_history
         self.profit = 0
+        self.age = 0
 
     def execute(self, historical_prices, start_asset):
         curr_asset = start_asset
@@ -17,16 +18,15 @@ class Agent:
             for ticker, actions in self.sale_history.items():
                 action = actions[i]
                 inventory[ticker] += action
-                if inventory[ticker] < 0: # sold more actions than had
+                if inventory[ticker] < 0:
                     self.profit = 0
                     return
 
                 curr_asset -= historical_prices[ticker][i] * action
-            if curr_asset < 0: # bought more than could afford
+            if curr_asset < 0:
                 self.profit = 0
                 return
 
-        # sell remaining inventory at last known price
         for ticker, count in inventory.items():
             curr_asset += historical_prices[ticker][-1] * count
 

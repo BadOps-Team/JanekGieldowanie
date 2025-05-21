@@ -1,11 +1,7 @@
 import sys
-
 from Stocks import StockUtility
-
 sys.path.append("..")
-
 from Agent.agent import Agent
-
 from dataclasses import dataclass
 import numpy as np
 from typing import Self
@@ -22,6 +18,7 @@ class GASettings:
     mutate_rotate_chance: float = 0.5
     crossover_point_amount: int = 2
     crossover_point_chance: float = 0.5
+    max_age: int = 15
 
 @dataclass
 class Gene:
@@ -156,7 +153,7 @@ class Genome:
 
         for day in range(forecast_days):
             tickers_shuffled = stocks[:]
-            random.shuffle(tickers_shuffled)  # tutaj losujemy kolejność tickerów na każdy dzień
+            random.shuffle(tickers_shuffled)
 
             for ticker, _ in tickers_shuffled:
                 prev_price = last_known_prices[ticker] if day == 0 else predictions[ticker][day - 1]
@@ -168,13 +165,11 @@ class Genome:
                 if price_change_ratio > 0.001:
                     max_affordable = int(curr_asset / prev_price)
                     if max_affordable > 0:
-                        # TODO estimate amount of actions
                         action = random.randint(1, min(max_affordable, max_actions_per_day_bought))
                         curr_asset -= action * prev_price
                         inventory[ticker] += action
 
                 elif price_change_ratio < -0.0001 and inventory[ticker] > 0:
-                    # TODO estimate amount of actions
                     action = -random.randint(1, min(inventory[ticker], max_actions_per_day_sold))
                     curr_asset -= action * prev_price
                     inventory[ticker] += action
@@ -200,6 +195,7 @@ class GeneticAlgorithm:
             self.settings.mutate_rotate_chance = ga_config["mutate_rotate_chance"]
             self.settings.crossover_point_amount = ga_config["crossover_point_amount"]
             self.settings.crossover_point_chance = ga_config["crossover_point_chance"]
+            self.settings.max_age = ga_config["max_age"]
 
 
     def evolve(self, agents: list[Agent]) -> list[Agent]:
@@ -213,10 +209,8 @@ class GeneticAlgorithm:
                 agents_next.append(child.to_agent())
             return agents_next
 
-        # Normalizacja fitness
         fitness = [f / sum_fitness for f in fitness]
 
-        # Generowanie dzieci
         children = []
         children_size = int(len(agents) * self.settings.children_ratio)
         while len(children) < children_size:
@@ -224,10 +218,14 @@ class GeneticAlgorithm:
             parent2 = Genome.from_agent(np.random.choice(agents, p=fitness))
             child = parent1.crossover(parent2, self.settings)
             child.mutate(self.settings)
-            children.append(child.to_agent())
+            child_agent = child.to_agent()
+            child_agent.age = 0
+            children.append(child_agent)
 
-        # Selekcja przetrwałych
         alive_size = len(agents) - len(children)
-        alive = np.random.choice(agents, size=alive_size, p=fitness).tolist()
+        agents_to_select = [agent for agent in agents if agent.age < self.settings.max_age]
+        alive = np.random.choice(agents_to_select, size=alive_size, p=fitness).tolist()
+        for agent in alive:
+            agent.age += 1
 
         return alive + children
