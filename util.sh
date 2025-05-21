@@ -12,13 +12,14 @@ elif [ "$1" == "commit_machine" ]; then
 		if ((i%2 == 0 )); then
 			echo "pzdr" > temp
 			git add .
-			git commit -m "commit{$i}"
+			git commit -m "commit$i"
 			git push
 		else 
 			rm -f temp
 			git add .
-			git commit -m "commit{$i}"
+			git commit -m "commit$i"
 			git push
 		fi
 	done
+	rm -f temp
 fi
