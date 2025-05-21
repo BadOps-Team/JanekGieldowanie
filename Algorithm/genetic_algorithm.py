@@ -43,15 +43,7 @@ class GeneticAlgorithm:
             children.append(child_agent)
 
         alive_size = len(agents) - len(children)
-        agents_to_select = [agent for agent in agents if agent.age < self.settings.max_age]
-        fitness_selection = [f for agent, f in zip(agents, fitness) if agent.age < self.settings.max_age]
-
-        fitness_selection_sum = sum(fitness_selection)
-        if fitness_selection_sum == 0:
-            alive = random.sample(agents_to_select, k=alive_size)
-        else:
-            fitness_selection = [f / fitness_selection_sum for f in fitness_selection]
-            alive = np.random.choice(agents_to_select, size=alive_size, p=fitness_selection).tolist()
+        alive = np.random.choice(agents, size=alive_size, p=fitness).tolist()
 
         for agent in alive:
             agent.age += 1
