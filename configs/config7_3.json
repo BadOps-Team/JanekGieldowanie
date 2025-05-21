@@ -31,5 +31,5 @@
     "buy": 100,
     "sell": 1000
   },
-  "estimator_strategy": "mse"
+  "estimator_strategy": "lse"
 }

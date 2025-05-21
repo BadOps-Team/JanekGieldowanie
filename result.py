@@ -6,9 +6,9 @@ from main import main
 path = "configs"
 configs = Path(path)
 
-for f in configs.glob("*.json"):
+for f in configs.glob("config1_0.json"):
     for it in range(10):
-        print(str(f), f"interation{it}")
+        print(str(f), f"iteration {it}")
         with open(f, "r") as conf:
             cnf = json.load(conf)
         start_asset = cnf["start_asset"]
@@ -30,7 +30,7 @@ for f in configs.glob("*.json"):
             plt.tight_layout()
             sd = cnf["start_date"]
             ed = cnf["end_date"]
-            plt.savefig(f"graphs/no_stocks_agent{i}{f.name}{sd}{ed}.png", dpi=300)
+            plt.savefig(f"graphs/no_stocks_agent{i}{f.name}{sd}{ed}{it}.png", dpi=300)
             plt.close()
 
         plt.plot([i for i in range(len(days_best_agent))], days_best_agent)
@@ -39,7 +39,7 @@ for f in configs.glob("*.json"):
         plt.ylabel("Profit")
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig(f"graphs/days_best_profit{f.name}.png", dpi=300)
+        plt.savefig(f"graphs/days_best_profit{f.name}{it}.png", dpi=300)
         plt.close()
 
         plt.plot([i for i in range(len(best_agent))], best_agent)
@@ -48,5 +48,5 @@ for f in configs.glob("*.json"):
         plt.ylabel("Profit")
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig(f"graphs/best_profit_per_day{f.name}.png", dpi=300)
+        plt.savefig(f"graphs/best_profit_per_day{f.name}{it}.png", dpi=300)
         plt.close()
