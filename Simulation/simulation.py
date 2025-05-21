@@ -18,13 +18,12 @@ class Simulation:
         best_agent = None
         best_profit = 0
         best_agents_profit = []
-
+        day_best_agents_profit = []
         for i in range(self.evolution_days):
             print("=" * 100)
             print(f"Day {i}")
             self.agents = self.GA.evolve(self.agents)
             day_best_agent = None
-            day_best_agents_profit = []
             for agent in self.agents:
                 agent.execute(historical_prices=self.historical_prices, start_asset=self.start_asset)
 
