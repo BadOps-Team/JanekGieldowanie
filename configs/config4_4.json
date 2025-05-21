@@ -17,7 +17,8 @@
     "mutate_change_chance" : 0.5,
     "mutate_rotate_chance" : 0.5,
     "crossover_point_amount" : 2,
-    "crossover_point_chance" : 0.5
+    "crossover_point_chance" : 0.5,
+    "max_age" : 15
   },
   "max_actions_per_day": {
     "buy": 100,
