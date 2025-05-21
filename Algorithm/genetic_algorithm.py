@@ -3,6 +3,11 @@ import sys
 from Stocks import StockUtility
 
 sys.path.append("..")
+import sys
+
+from Stocks import StockUtility
+
+sys.path.append("..")
 
 from Agent.agent import Agent
 

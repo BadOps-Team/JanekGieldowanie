@@ -5,7 +5,9 @@ from datetime import datetime
 
 from Agent.agent import Agent
 from Algorithm.genetic_algorithm import GeneticAlgorithm, Genome
+from Algorithm.genetic_algorithm import GeneticAlgorithm, Genome
 from Simulation.simulation import Simulation
+from Stocks import StockUtilityFactory, Period
 from Stocks import StockUtilityFactory, Period
 from Stocks.estimators import EstimatorStrategy
 
