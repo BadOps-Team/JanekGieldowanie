@@ -1,6 +1,6 @@
 from typing import List, Dict
 from Agent.agent import Agent
-from Algorithm.genetic_algorithm import GeneticAlgorithm
+from Algorithm import GeneticAlgorithm
 from Stocks import StockUtility
 
 class Simulation:

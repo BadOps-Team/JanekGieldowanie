@@ -2,8 +2,8 @@ import json
 import sys
 from datetime import datetime
 
-from Algorithm.genetic_algorithm import GeneticAlgorithm, Genome
-from Simulation.simulation import Simulation
+from Algorithm import GeneticAlgorithm, Genome
+from Simulation import Simulation
 from Stocks import StockUtilityFactory, Period
 from Stocks.estimators import EstimatorStrategy
 
@@ -24,6 +24,7 @@ def main(name):
     max_buy = cfg['max_actions_per_day']['buy']
     max_sell = cfg['max_actions_per_day']['sell']
 
+    # strategia do configa
     factory = StockUtilityFactory(EstimatorStrategy.METHOD_OF_MOMENTS, name)
 
     stocks = [(t, factory.create_stock_utilty(t)) for t in tickers]
