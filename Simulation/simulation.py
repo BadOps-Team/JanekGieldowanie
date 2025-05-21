@@ -26,7 +26,6 @@ class Simulation:
             for agent in self.agents:
                 agent.execute(historical_prices=self.historical_prices, start_asset=self.start_asset)
 
-                # assign on the very first agent, or any strictly-better profit
                 if best_agent is None or agent.profit > best_profit:
                     best_profit = agent.profit
                     best_agent = agent
@@ -37,6 +36,5 @@ class Simulation:
             print(f"Days {i} best agent: Agent{self.agents.index(day_best_agent)} profit = {day_best_agent.profit}")
             print(f"Best agent so far: Agent{self.agents.index(best_agent)} profit = {best_agent.profit}")
 
-        # best_agent is now guaranteed not to be None
         return self.agents
 
