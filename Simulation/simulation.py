@@ -35,8 +35,8 @@ class Simulation:
 
             day_best_agents_profit.append(day_best_agent.profit)
             best_agents_profit.append(best_agent.profit)
-            print(f"Days {i} best agent: Agent{self.agents.index(day_best_agent)} profit = {day_best_agent.profit}")
-            print(f"Best profit so far = {best_agent.profit}")
+            print(f"Days {i} best agent: Agent{self.agents.index(day_best_agent)} profit = {day_best_agent.profit - self.start_asset}")
+            print(f"Best profit so far = {best_agent.profit - self.start_asset}")
 
         return self.agents, day_best_agents_profit, best_agents_profit
 
