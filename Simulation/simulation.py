@@ -16,19 +16,27 @@ class Simulation:
 
     def run_simulation(self):
         best_agent = None
-        best_price = 0
+        best_profit = 0
 
         for i in range(self.evolution_days):
+            print("=" * 100)
+            print(f"Day {i}")
             self.agents = self.GA.evolve(self.agents)
+            day_best_agent = None
             for agent in self.agents:
                 agent.execute(historical_prices=self.historical_prices, start_asset=self.start_asset)
 
-                if best_agent is None or agent.profit > best_price:
-                    best_price = agent.profit
+                # assign on the very first agent, or any strictly-better profit
+                if best_agent is None or agent.profit > best_profit:
+                    best_profit = agent.profit
                     best_agent = agent
-
+                if day_best_agent is None or agent.profit > day_best_agent.profit:
+                    day_best_agent = agent    
                 print(f'{agent.profit} {agent.sale_history}')
 
-        print(f'Best price: {best_price:.2f}  History: {best_agent.sale_history}')
+            print(f"Days {i} best agent: Agent{self.agents.index(day_best_agent)} profit = {day_best_agent.profit}")
+            print(f"Best agent so far: Agent{self.agents.index(best_agent)} profit = {best_agent.profit}")
+
+        # best_agent is now guaranteed not to be None
         return self.agents
 
