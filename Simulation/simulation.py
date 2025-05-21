@@ -17,7 +17,8 @@ class Simulation:
     def run_simulation(self):
         best_agent = None
         best_profit = 0
-
+        day_best_agents_profit = []
+        best_agents_profit = []
         for i in range(self.evolution_days):
             print("=" * 100)
             print(f"Day {i}")
@@ -33,10 +34,11 @@ class Simulation:
                 if day_best_agent is None or agent.profit > day_best_agent.profit:
                     day_best_agent = agent    
                 print(f'{agent.profit} {agent.sale_history}')
-
+            day_best_agent.append(day_best_agent.profit)
+            best_agents_profit.append(best_agent.profit)
             print(f"Days {i} best agent: Agent{self.agents.index(day_best_agent)} profit = {day_best_agent.profit}")
             print(f"Best agent so far: Agent{self.agents.index(best_agent)} profit = {best_agent.profit}")
 
         # best_agent is now guaranteed not to be None
-        return self.agents
+        return self.agents, day_best_agent, best_agents_profit
 
