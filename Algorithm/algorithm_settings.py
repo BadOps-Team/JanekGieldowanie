@@ -11,4 +11,3 @@ class GASettings:
     mutate_rotate_chance: float = 0.5
     crossover_point_amount: int = 2
     crossover_point_chance: float = 0.5
-    max_age: int = 15

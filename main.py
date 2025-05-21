@@ -1,11 +1,13 @@
 import json
 import sys
+from pathlib import Path
 from datetime import datetime
 
 from Algorithm import GeneticAlgorithm, Genome
 from Simulation import Simulation
 from Stocks import StockUtilityFactory, Period
 from Stocks.estimators import EstimatorStrategy
+from Util import DirectoryUtil
 
 def main(name):
     with open(name) as f:
@@ -53,4 +55,7 @@ def main(name):
     return [{'profit': a.profit, 'history': a.sale_history} for a in agents_list], [dba - start_asset for dba in days_best_agent], [ba - start_asset for ba in best_agent]
 
 if __name__ == "__main__":
+    main_dir = Path(__file__).parent
+    DirectoryUtil.directory_exists(main_dir, "graph", True)
+    DirectoryUtil.directory_exists(main_dir, "csv_results", True)
     main(sys.argv[1])

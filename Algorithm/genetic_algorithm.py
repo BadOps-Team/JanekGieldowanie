@@ -17,8 +17,6 @@ class GeneticAlgorithm:
             self.settings.mutate_rotate_chance = ga_config["mutate_rotate_chance"]
             self.settings.crossover_point_amount = ga_config["crossover_point_amount"]
             self.settings.crossover_point_chance = ga_config["crossover_point_chance"]
-            self.settings.max_age = ga_config["max_age"]
-
 
     def evolve(self, agents: list[Agent]) -> list[Agent]:
         fitness = [agent.profit for agent in agents]

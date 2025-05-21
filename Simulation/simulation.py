@@ -1,7 +1,9 @@
 from typing import List, Dict
-from Agent.agent import Agent
+from Agent import Agent
 from Algorithm import GeneticAlgorithm
 from Stocks import StockUtility
+import pandas as pd
+from pathlib import Path
 
 class Simulation:
     def __init__(self, agents: List[Agent], stock_utilities: List[tuple[str, StockUtility]],
@@ -38,5 +40,9 @@ class Simulation:
             print(f"Days {i} best agent: Agent{self.agents.index(day_best_agent)} profit = {day_best_agent.profit - self.start_asset}")
             print(f"Best profit so far = {best_agent.profit - self.start_asset}")
 
+        result_df = pd.DataFrame(self.agents)
+        result_df["day_best_agents_profit"] = day_best_agents_profit
+        result_df["best_agents_profit"] = best_agents_profit
+        result_df.to_csv("simulation.csv")
         return self.agents, day_best_agents_profit, best_agents_profit
 
