@@ -9,7 +9,7 @@ configs = Path(path)
 for f in configs.glob("config1_0.json"):
     for it in range(10):
         print(str(f), f"iteration {it}")
-        with open(f, "r") as conf:
+        with open(f, "r", encoding="utf-8-sig") as conf:
             cnf = json.load(conf)
         start_asset = cnf["start_asset"]
         agents, days_best_agent, best_agent = main(path + "/" + f.name)
