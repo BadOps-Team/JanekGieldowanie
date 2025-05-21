@@ -51,7 +51,7 @@ class Genome:
         )
 
     @classmethod
-    def warm_start(cls, stocks: list[tuple[str, StockUtility]], historical_prices: dict[str, list[float]],
+    def warm_start(cls, *, stocks: list[tuple[str, StockUtility]], historical_prices: dict[str, list[float]],
                    start_asset: float, max_actions_per_day_bought: int, max_actions_per_day_sold: int,
                    simulation_length: int) -> Self:
         sale_history = {ticker: [] for ticker, _ in stocks}

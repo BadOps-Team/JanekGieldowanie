@@ -1,6 +1,7 @@
 import json
 import sys
 from pathlib import Path
+from math import inf
 from datetime import datetime
 
 from Algorithm import GeneticAlgorithm, Genome
@@ -16,8 +17,6 @@ def main(name):
     size = cfg['size']
     start_date = datetime.strptime(cfg['start_date'], '%Y-%m-%d').date()
     end_date = datetime.strptime(cfg['end_date'], '%Y-%m-%d').date()
-    simulation_length = cfg['simulation_length']
-    forecast_days = cfg['forecast_days']
     start_asset = cfg['start_asset']
     tickers = cfg['stocks']
     ga_params = cfg['ga']
@@ -38,13 +37,16 @@ def main(name):
 
     period = Period(start_date, end_date)
     historical_prices = {}
+    simulation_length = inf
     for ticker, stock_utility in stocks:
         historical_prices[ticker] = stock_utility.get_historical_close_prices(period).tolist()
+        simulation_length = min(len(historical_prices[ticker]), simulation_length)
 
     agents = []
-
     for _ in range(size):
-        genome = Genome.warm_start(stocks, historical_prices, forecast_days, start_asset, max_buy, max_sell, simulation_length)
+        genome = Genome.warm_start(stocks=stocks, historical_prices=historical_prices,
+                                   start_asset=start_asset, max_actions_per_day_bought=max_buy,
+                                   max_actions_per_day_sold=max_sell, simulation_length=simulation_length)
         agent = genome.to_agent()
         agent.execute(historical_prices=historical_prices, start_asset=start_asset)
         agents.append(agent)
