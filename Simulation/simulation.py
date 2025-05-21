@@ -40,11 +40,11 @@ class Simulation:
             print(f"Days {i} best agent: Agent{self.agents.index(day_best_agent)} profit = {day_best_agent.profit - self.start_asset}")
             print(f"Best profit so far = {best_agent.profit - self.start_asset}")
 
-        result_df = pd.DataFrame(self.agents)
-        result_df["day_best_agents_profit"] = day_best_agents_profit
-        result_df["best_agents_profit"] = best_agents_profit
+        results_agents_df = pd.DataFrame(self.agents)
+        results_df = pd.concat([day_best_agent, day_best_agents_profit], axis=1)
 
         results_path = Path(__file__).parent / "csv_results"
-        result_df.to_csv(results_path / filename.replace(".json", ".csv"))
+        results_df.to_csv(results_path / ("results_" + filename.replace(".json", ".csv")))
+        results_agents_df.to_csv(results_path / ("results_agents_" + filename.replace(".json", ".csv")))
         return self.agents, day_best_agents_profit, best_agents_profit
 
