@@ -1,6 +1,6 @@
 from typing import List, Dict
 from Agent.agent import Agent
-from Algorithm.genetic_algorithm import GeneticAlgorithm
+from Algorithm import GeneticAlgorithm
 from Stocks import StockUtility
 
 class Simulation:
@@ -17,13 +17,14 @@ class Simulation:
     def run_simulation(self):
         best_agent = None
         best_profit = 0
-        day_best_agents_profit = []
         best_agents_profit = []
+
         for i in range(self.evolution_days):
             print("=" * 100)
             print(f"Day {i}")
             self.agents = self.GA.evolve(self.agents)
             day_best_agent = None
+            day_best_agents_profit = []
             for agent in self.agents:
                 agent.execute(historical_prices=self.historical_prices, start_asset=self.start_asset)
 

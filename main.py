@@ -2,8 +2,8 @@ import json
 import sys
 from datetime import datetime
 
-from Algorithm.genetic_algorithm import GeneticAlgorithm, Genome
-from Simulation.simulation import Simulation
+from Algorithm import GeneticAlgorithm, Genome
+from Simulation import Simulation
 from Stocks import StockUtilityFactory, Period
 from Stocks.estimators import EstimatorStrategy
 
@@ -16,15 +16,21 @@ def main(name):
     end_date = datetime.strptime(cfg['end_date'], '%Y-%m-%d').date()
     evolution_days = cfg['evolution_days']
     forecast_days = cfg['forecast_days']
-    # estimation_period = cfg['estimation_period']
-    # simulation_length = cfg['simulation_length']
     start_asset = cfg['start_asset']
     tickers = cfg['stocks']
     ga_params = cfg['ga']
     max_buy = cfg['max_actions_per_day']['buy']
     max_sell = cfg['max_actions_per_day']['sell']
+    strategy = cfg['estimator_strategy']
 
-    factory = StockUtilityFactory(EstimatorStrategy.METHOD_OF_MOMENTS, name)
+    if strategy == 'mom':
+        factory = StockUtilityFactory(EstimatorStrategy.METHOD_OF_MOMENTS, name)
+    elif strategy == 'lse':
+        factory = StockUtilityFactory(EstimatorStrategy.LEAST_SQUARE_METHOD, name)
+    elif strategy == 'ml':
+        factory = StockUtilityFactory(EstimatorStrategy.MAXIMUM_LIKELIHOOD, name)
+    else:
+        raise ValueError('Strategy not recognized')
 
     stocks = [(t, factory.create_stock_utilty(t)) for t in tickers]
 

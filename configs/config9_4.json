@@ -31,5 +31,6 @@
     "max_actions_per_day":  {
                                 "buy":  100,
                                 "sell":  1000
-                            }
+                            },
+    "estimator_strategy":  "mse"
 }
