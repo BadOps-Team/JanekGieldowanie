@@ -51,7 +51,7 @@ def main(name):
 
     GA = GeneticAlgorithm(ga_params)
     simulation = Simulation(agents, stocks, start_asset, evolution_days, GA, historical_prices)
-    agents_list, days_best_agent, best_agent = simulation.run_simulation()
+    agents_list, days_best_agent, best_agent = simulation.run_simulation(name)
     return [{'profit': a.profit, 'history': a.sale_history} for a in agents_list], [dba - start_asset for dba in days_best_agent], [ba - start_asset for ba in best_agent]
 
 if __name__ == "__main__":

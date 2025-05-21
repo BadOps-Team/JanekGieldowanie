@@ -16,7 +16,7 @@ class Simulation:
         self.GA = GA
         self.historical_prices = historical_prices
 
-    def run_simulation(self):
+    def run_simulation(self, filename):
         best_agent = None
         best_profit = 0
         best_agents_profit = []
@@ -45,6 +45,6 @@ class Simulation:
         result_df["best_agents_profit"] = best_agents_profit
 
         results_path = Path(__file__).parent / "csv_results"
-        result_df.to_csv(results_path / "simulation.csv")
+        result_df.to_csv(results_path / filename.replace(".json", ".csv"))
         return self.agents, day_best_agents_profit, best_agents_profit
 
