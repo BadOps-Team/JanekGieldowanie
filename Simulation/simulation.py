@@ -39,6 +39,5 @@ class Simulation:
             print(f"Days {i} best agent: Agent{self.agents.index(day_best_agent)} profit = {day_best_agent.profit}")
             print(f"Best profit so far = {best_agent.profit}")
 
-        # best_agent is now guaranteed not to be None
         return self.agents, day_best_agents_profit, best_agents_profit
 
