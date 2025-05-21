@@ -7,12 +7,12 @@ from pathlib import Path
 
 class Simulation:
     def __init__(self, agents: List[Agent], stock_utilities: List[tuple[str, StockUtility]],
-                 start_asset: int, evolution_days: int, GA: GeneticAlgorithm,
+                 start_asset: int, simulation_length: int, GA: GeneticAlgorithm,
                  historical_prices: Dict[str, List[int]]):
         self.agents = agents
         self.stock_utilities = stock_utilities
         self.start_asset = start_asset
-        self.evolution_days = evolution_days
+        self.simulation_length = simulation_length
         self.GA = GA
         self.historical_prices = historical_prices
 
@@ -21,7 +21,7 @@ class Simulation:
         best_profit = 0
         best_agents_profit = []
         day_best_agents_profit = []
-        for i in range(self.evolution_days):
+        for i in range(self.simulation_length):
             print("=" * 100)
             print(f"Day {i}")
             self.agents = self.GA.evolve(self.agents)
@@ -47,7 +47,7 @@ class Simulation:
         } for agent in self.agents])
 
         results_df = pd.DataFrame({
-            "day": list(range(self.evolution_days)),
+            "day": list(range(self.simulation_length)),
             "best_agent_profit": best_agents_profit,
             "day_best_agent_profit": day_best_agents_profit
         })

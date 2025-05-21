@@ -16,7 +16,7 @@ def main(name):
     size = cfg['size']
     start_date = datetime.strptime(cfg['start_date'], '%Y-%m-%d').date()
     end_date = datetime.strptime(cfg['end_date'], '%Y-%m-%d').date()
-    evolution_days = cfg['evolution_days']
+    simulation_length = cfg['simulation_length']
     forecast_days = cfg['forecast_days']
     start_asset = cfg['start_asset']
     tickers = cfg['stocks']
@@ -44,13 +44,13 @@ def main(name):
     agents = []
 
     for _ in range(size):
-        genome = Genome.warm_start(stocks, historical_prices, forecast_days, start_asset, max_buy, max_sell)
+        genome = Genome.warm_start(stocks, historical_prices, forecast_days, start_asset, max_buy, max_sell, simulation_length)
         agent = genome.to_agent()
         agent.execute(historical_prices=historical_prices, start_asset=start_asset)
         agents.append(agent)
 
     GA = GeneticAlgorithm(ga_params)
-    simulation = Simulation(agents, stocks, start_asset, evolution_days, GA, historical_prices)
+    simulation = Simulation(agents, stocks, start_asset, simulation_length, GA, historical_prices)
     agents_list, days_best_agent, best_agent = simulation.run_simulation(name)
     return [{'profit': a.profit, 'history': a.sale_history} for a in agents_list], [dba - start_asset for dba in days_best_agent], [ba - start_asset for ba in best_agent]
 

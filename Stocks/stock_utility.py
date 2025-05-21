@@ -30,7 +30,7 @@ class StockUtility:
         # adjust for weekends
         for i in StockUtility._ESTIMATION_CONFIG.estimation_range(len(data)):
             window_start = i
-            window_end = i + StockUtility._ESTIMATION_CONFIG.estimation_period
+            window_end = i + StockUtility._ESTIMATION_CONFIG.lookback_days
             estimation_data = data.iloc[window_start:window_end]
             estimation_results = self.estimator.estimate_from_historic(
                 estimation_data, 

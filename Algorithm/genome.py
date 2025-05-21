@@ -52,13 +52,14 @@ class Genome:
 
     @classmethod
     def warm_start(cls, stocks: list[tuple[str, StockUtility]], historical_prices: dict[str, list[float]],
-                   forecast_days: int, start_asset: float, max_actions_per_day_bought: int, max_actions_per_day_sold: int) -> Self:
+                   start_asset: float, max_actions_per_day_bought: int, max_actions_per_day_sold: int,
+                   simulation_length: int) -> Self:
         sale_history = {ticker: [] for ticker, _ in stocks}
         curr_asset = start_asset
         inventory = {ticker: 0 for ticker, _ in stocks}
 
         predictions = {
-            ticker: next(stock_utility.get_estimations()).estimated_prices[:forecast_days]
+            ticker: next(stock_utility.get_estimations()).estimated_prices
             for ticker, stock_utility in stocks
         }
 
@@ -67,7 +68,7 @@ class Genome:
             for ticker, _ in stocks
         }
 
-        for day in range(forecast_days):
+        for day in range(simulation_length):
             tickers_shuffled = stocks[:]
             random.shuffle(tickers_shuffled)
 
@@ -91,6 +92,11 @@ class Genome:
                     inventory[ticker] += action
 
                 sale_history[ticker].append(action)
+
+            predictions = {
+                ticker: next(stock_utility.get_estimations()).estimated_prices
+                for ticker, stock_utility in stocks
+            }
 
         sale_history = {ticker: Gene(actions) for ticker, actions in sale_history.items()}
 
