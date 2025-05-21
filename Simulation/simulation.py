@@ -43,6 +43,8 @@ class Simulation:
         result_df = pd.DataFrame(self.agents)
         result_df["day_best_agents_profit"] = day_best_agents_profit
         result_df["best_agents_profit"] = best_agents_profit
-        result_df.to_csv("simulation.csv")
+
+        results_path = Path(__file__).parent / "csv_results"
+        result_df.to_csv(results_path / "simulation.csv")
         return self.agents, day_best_agents_profit, best_agents_profit
 
