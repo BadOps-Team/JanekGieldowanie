@@ -11,7 +11,7 @@ from Stocks.estimators import EstimatorStrategy
 from Util import DirectoryUtil
 
 def main(name):
-    with open(name) as f:
+    with open(name, encoding='utf-8-sig') as f:
         cfg = json.load(f)
 
     size = cfg['size']
@@ -23,6 +23,7 @@ def main(name):
     max_buy = cfg['max_actions_per_day']['buy']
     max_sell = cfg['max_actions_per_day']['sell']
     strategy = cfg['estimator_strategy']
+    forecast_days = cfg['forecast_days']
 
     if strategy == 'mom':
         factory = StockUtilityFactory(EstimatorStrategy.METHOD_OF_MOMENTS, name)
@@ -46,7 +47,7 @@ def main(name):
     for _ in range(size):
         genome = Genome.warm_start(stocks=stocks, historical_prices=historical_prices,
                                    start_asset=start_asset, max_actions_per_day_bought=max_buy,
-                                   max_actions_per_day_sold=max_sell, simulation_length=simulation_length)
+                                   max_actions_per_day_sold=max_sell, simulation_length=simulation_length, forecast_days=forecast_days)
         agent = genome.to_agent()
         agent.execute(historical_prices=historical_prices, start_asset=start_asset)
         agents.append(agent)

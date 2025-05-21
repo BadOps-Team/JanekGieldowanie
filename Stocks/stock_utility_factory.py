@@ -7,7 +7,7 @@ class StockUtilityFactory:
         self.strategy = strategy
 
         # init config
-        with open(config_file_path, 'r') as f:
+        with open(config_file_path, 'r', encoding='utf-8-sig') as f: # Added encoding='utf-8-sig'
             json_config = json.load(f)
             StockUtility.create_config(json_config)
 
