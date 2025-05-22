@@ -9,5 +9,5 @@ dependencies = [
     "numpy>=2.2.4",
     "pandas>=2.2.3",
     "pytest>=8.3.5",
-    "yfinance>=0.2.59",
+    "yfinance>=0.2.61",
 ]
