@@ -7,13 +7,7 @@
     "start_asset": 50000,
     "num_of_iterations": 10000,
     "stocks": [
-        "AAPL",
-        "SPOT",
-        "MSFT",
-        "GOOGL",
-        "AMZN",
-        "TSLA",
-        "PFE"
+        "AAPL", "SPOT", "MSFT", "GOOGL", "AMZN", "TSLA", "PFE"
     ],
     "ga": {
         "children_ratio": 0.3,

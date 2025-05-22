@@ -12,7 +12,7 @@ for f in configs.glob("config1_0.json"):
         with open(f, "r", encoding="utf-8-sig") as conf:
             cnf = json.load(conf)
         start_asset = cnf["start_asset"]
-        agents, days_best_agent, best_agent = main(path + "/" + f.name)
+        agents, iteration_best_agent, best_agent = main(path + "/" + f.name, it)
         agent_dicts = list(filter(lambda x: x["profit"] > 0,sorted(agents, key=lambda x: x["profit"])))
         for i, agent in enumerate(agent_dicts[-1:]):
             for stock, ops in agent['history'].items():
@@ -30,23 +30,23 @@ for f in configs.glob("config1_0.json"):
             plt.tight_layout()
             sd = cnf["start_date"]
             ed = cnf["end_date"]
-            plt.savefig(f"graph/no_stocks_agent{i}{f.name}{sd}{ed}{it}.png", dpi=300)
+            plt.savefig(f"graphs/no_stocks_agent{i}{f.name}{sd}{ed}{it}.png", dpi=300)
             plt.close()
 
-        plt.plot([i for i in range(len(days_best_agent))], days_best_agent)
-        plt.title(f"Each day's best agent's profit")
-        plt.xlabel("Day")
+        plt.plot([i for i in range(len(iteration_best_agent))], iteration_best_agent)
+        plt.title(f"Each iteration's best agent's profit")
+        plt.xlabel("Iteration")
         plt.ylabel("Profit")
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig(f"graphs/days_best_profit{f.name}{it}.png", dpi=300)
+        plt.savefig(f"graphs/iterations_best_profit{f.name}{it}.png", dpi=300)
         plt.close()
 
         plt.plot([i for i in range(len(best_agent))], best_agent)
-        plt.title(f"Best agent's profit each day")
-        plt.xlabel("Day")
+        plt.title(f"Best agent's profit each iteration")
+        plt.xlabel("Iteration")
         plt.ylabel("Profit")
         plt.grid(True)
         plt.tight_layout()
-        plt.savefig(f"graphs/best_profit_per_day{f.name}{it}.png", dpi=300)
+        plt.savefig(f"graphs/best_profit_per_iteration{f.name}{it}.png", dpi=300)
         plt.close()

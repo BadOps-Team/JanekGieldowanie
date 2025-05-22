@@ -8,13 +8,14 @@ from pathlib import Path
 class Simulation:
     def __init__(self, agents: List[Agent], stock_utilities: List[tuple[str, StockUtility]],
                  start_asset: int, num_of_iterations: int, GA: GeneticAlgorithm,
-                 historical_prices: Dict[str, List[int]]):
+                 historical_prices: Dict[str, List[int]], it: int):
         self.agents = agents
         self.stock_utilities = stock_utilities
         self.start_asset = start_asset
         self.num_of_iterations = num_of_iterations
         self.GA = GA
         self.historical_prices = historical_prices
+        self.it = it
 
     def run_simulation(self, filename):
         best_agent = None
@@ -61,5 +62,6 @@ class Simulation:
         file_path = Path(filename).name
         results_path = Path(__file__).parent.parent / "csv_results"
         results_path.mkdir(parents=True, exist_ok=True)
-        results_df.to_csv(results_path / ("results_" + file_path.replace(".json", ".csv")))
-        results_agents_df.to_csv(results_path / ("results_agents_" + file_path.replace(".json", ".csv")))
+        results_df.to_csv(results_path / (
+                    f"results_it{self.it}_" + file_path.replace(".json", ".csv")))
+        results_agents_df.to_csv(results_path / (f"results_agents_it{self.it}_" + file_path.replace(".json", ".csv")))

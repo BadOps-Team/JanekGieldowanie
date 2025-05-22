@@ -10,15 +10,15 @@
     "AAPL", "SPOT", "MSFT", "GOOGL", "AMZN", "TSLA", "PFE"
   ],
   "ga": {
-    "children_ratio": 0.3,
+    "children_ratio": 0.45,
     "crossover_imbalance": 0.25,
-    "float_mutation_variance": 0.01,
-    "rotation_size_variance": 0.1,
-    "rotation_shift_variance": 0.1,
-    "mutate_change_chance": 0.1,
-    "mutate_rotate_chance": 0.1,
-    "crossover_point_amount": 1,
-    "crossover_point_chance": 0.2
+    "float_mutation_variance": 0.5,
+    "rotation_size_variance": 1,
+    "rotation_shift_variance": 1,
+    "mutate_change_chance": 0.6,
+    "mutate_rotate_chance": 0.6,
+    "crossover_point_amount": 2,
+    "crossover_point_chance": 0.5
   },
   "max_actions_per_day": {
     "buy": 3,

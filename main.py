@@ -11,7 +11,7 @@ from Stocks import StockUtilityFactory, Period
 from Stocks.estimators import EstimatorStrategy
 from Util import DirectoryUtil
 
-def main(name):
+def main(name, it=0):
     with open(name, encoding='utf-8-sig') as f:
         cfg = json.load(f)
 
@@ -24,7 +24,6 @@ def main(name):
     max_buy = cfg['max_actions_per_day']['buy']
     max_sell = cfg['max_actions_per_day']['sell']
     strategy = cfg['estimator_strategy']
-    forecast_days = cfg['forecast_days']
     num_of_iterations = cfg['num_of_iterations']
 
     if strategy == 'mom':
@@ -61,7 +60,7 @@ def main(name):
             raise Exception("Warm start failed, change configuration")
 
     GA = GeneticAlgorithm(ga_params)
-    simulation = Simulation(agents, stocks, start_asset, num_of_iterations, GA, historical_prices)
+    simulation = Simulation(agents, stocks, start_asset, num_of_iterations, GA, historical_prices, it)
     agents_list, days_best_agent, best_agent = simulation.run_simulation(name)
     return [{'profit': a.profit, 'history': a.sale_history} for a in agents_list], [dba - start_asset for dba in days_best_agent], [ba - start_asset for ba in best_agent]
 
@@ -69,6 +68,7 @@ if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
     argparser.add_argument("--config", "-c", help="Path to the configuration file", type=str, default="config/config1_0.json")
     argparser.add_argument("--test", "-t", help="should run estimation tests", action="store_true", default=False)
+    argparser.add_argument("--iter", "-i", help="pass iteration number", type=int, default=0)
 
     args = argparser.parse_args()
 
