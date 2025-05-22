@@ -1,0 +1,30 @@
+﻿{
+    "estimator_strategy": "mom",
+    "lookback_days": 30,
+    "forecast_days": 30,
+
+    "start_date": "2020-01-01",
+    "end_date": "2020-12-31",
+    "start_asset": 50000,
+    "stocks": [
+        "AAPL", "SPOT", "MSFT", "GOOGL", "AMZN", "TSLA", "PFE"
+    ],
+
+    "size": 10,
+    "num_of_iterations": 100000,
+    "ga": {
+        "children_ratio": 0.6,
+        "crossover_imbalance": 0.25,
+        "float_mutation_variance": 3,
+        "rotation_size_variance": 1,
+        "rotation_shift_variance": 1,
+        "mutate_change_chance": 0.8,
+        "mutate_rotate_chance": 0.8,
+        "crossover_point_amount": 2,
+        "crossover_point_chance": 0.5
+    },
+    "max_actions_per_day": {
+        "buy": 3,
+        "sell": 3
+    }
+}
