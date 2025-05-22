@@ -25,6 +25,7 @@ def main(name):
     max_sell = cfg['max_actions_per_day']['sell']
     strategy = cfg['estimator_strategy']
     forecast_days = cfg['forecast_days']
+    num_of_iterations = cfg['num_of_iterations']
 
     if strategy == 'mom':
         factory = StockUtilityFactory(EstimatorStrategy.METHOD_OF_MOMENTS, name)
@@ -45,16 +46,22 @@ def main(name):
         simulation_length = min(len(historical_prices[ticker]), simulation_length)
 
     agents = []
-    for _ in range(size):
+    i = 0
+    while len(agents) < size:
         genome = Genome.warm_start(stocks=stocks, historical_prices=historical_prices,
                                    start_asset=start_asset, max_actions_per_day_bought=max_buy,
-                                   max_actions_per_day_sold=max_sell, simulation_length=simulation_length, forecast_days=forecast_days)
+                                   max_actions_per_day_sold=max_sell, simulation_length=simulation_length)
         agent = genome.to_agent()
         agent.execute(historical_prices=historical_prices, start_asset=start_asset)
-        agents.append(agent)
+        if agent.profit > 0:
+            agents.append(agent)
+            print(f"Agent number {len(agents)} has been added")
+        i += 1
+        if i >= size * 100:
+            raise Exception("Warm start failed, change configuration")
 
     GA = GeneticAlgorithm(ga_params)
-    simulation = Simulation(agents, stocks, start_asset, simulation_length, GA, historical_prices)
+    simulation = Simulation(agents, stocks, start_asset, num_of_iterations, GA, historical_prices)
     agents_list, days_best_agent, best_agent = simulation.run_simulation(name)
     return [{'profit': a.profit, 'history': a.sale_history} for a in agents_list], [dba - start_asset for dba in days_best_agent], [ba - start_asset for ba in best_agent]
 
@@ -75,4 +82,4 @@ if __name__ == "__main__":
     main_dir = Path(__file__).parent
     DirectoryUtil.directory_exists(main_dir, "graph", True)
     DirectoryUtil.directory_exists(main_dir, "csv_results", True)
-    main(sys.argv[1])
+    main(args.config)

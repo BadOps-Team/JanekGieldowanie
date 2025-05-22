@@ -53,52 +53,47 @@ class Genome:
     @classmethod
     def warm_start(cls, *, stocks: list[tuple[str, StockUtility]], historical_prices: dict[str, list[float]],
                    start_asset: float, max_actions_per_day_bought: int, max_actions_per_day_sold: int,
-                   simulation_length: int, forecast_days: int) -> Self:
+                   simulation_length: int) -> Self:
         sale_history = {ticker: [] for ticker, _ in stocks}
         curr_asset = start_asset
         inventory = {ticker: 0 for ticker, _ in stocks}
 
-        predictions = {
-            ticker: next(stock_utility.get_estimations()).estimated_prices
-            for ticker, stock_utility in stocks
-        }
-
-        last_known_prices = {
-            ticker: historical_prices[ticker][-1]
-            for ticker, _ in stocks
-        }
-
-        for _ in range(1, simulation_length):
-            for day in range(forecast_days):
-                tickers_shuffled = stocks[:]
-                random.shuffle(tickers_shuffled)
-
-                for ticker, _ in tickers_shuffled:
-                    prev_price = last_known_prices[ticker] if day == 0 else predictions[ticker][day - 1]
-                    future_price = predictions[ticker][day]
-
-                    price_change_ratio = (future_price - prev_price) / prev_price
-                    action = 0
-
-                    if price_change_ratio > 0.001:
-                        max_affordable = int(curr_asset / prev_price)
-                        if max_affordable > 0:
-                            action = random.randint(1, min(max_affordable, max_actions_per_day_bought))
-                            curr_asset -= action * prev_price
-                            inventory[ticker] += action
-
-                    elif price_change_ratio < -0.0001 and inventory[ticker] > 0:
-                        action = -random.randint(1, min(inventory[ticker], max_actions_per_day_sold))
-                        curr_asset -= action * prev_price
-                        inventory[ticker] += action
-
-                    sale_history[ticker].append(action)
-
+        for day in range(simulation_length):
             predictions = {
                 ticker: next(stock_utility.get_estimations()).estimated_prices
                 for ticker, stock_utility in stocks
             }
 
-        sale_history = {ticker: Gene(actions) for ticker, actions in sale_history.items()}
+            tickers_shuffled = stocks[:]
+            random.shuffle(tickers_shuffled)
 
+            for ticker, _ in tickers_shuffled:
+                if day == 0:
+                    prev_price = historical_prices[ticker][0]
+                else:
+                    prev_price = historical_prices[ticker][day - 1]
+
+                future_price = predictions[ticker][0]
+
+                price_change_ratio = (future_price - prev_price) / prev_price
+                action = 0
+
+                if price_change_ratio > 0.001:
+                    max_affordable = int(curr_asset / prev_price)
+                    if max_affordable > 0:
+                        action = random.randint(1, min(max_affordable, max_actions_per_day_bought))
+                        curr_asset -= action * prev_price
+                        inventory[ticker] += action
+
+                elif price_change_ratio < -0.0001 and inventory[ticker] > 0:
+                    action = -random.randint(1, min(inventory[ticker], max_actions_per_day_sold))
+                    curr_asset -= action * prev_price
+                    inventory[ticker] += action
+
+                sale_history[ticker].append(action)
+
+        for ticker, actions in sale_history.items():
+            assert len(actions) == simulation_length, f"{ticker} history length mismatch"
+
+        sale_history = {ticker: Gene(actions) for ticker, actions in sale_history.items()}
         return cls(sale_history=sale_history)

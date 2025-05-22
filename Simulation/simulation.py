@@ -7,23 +7,23 @@ from pathlib import Path
 
 class Simulation:
     def __init__(self, agents: List[Agent], stock_utilities: List[tuple[str, StockUtility]],
-                 start_asset: int, simulation_length: int, GA: GeneticAlgorithm,
+                 start_asset: int, num_of_iterations: int, GA: GeneticAlgorithm,
                  historical_prices: Dict[str, List[int]]):
         self.agents = agents
         self.stock_utilities = stock_utilities
         self.start_asset = start_asset
-        self.simulation_length = simulation_length
+        self.num_of_iterations = num_of_iterations
         self.GA = GA
         self.historical_prices = historical_prices
 
     def run_simulation(self, filename):
         best_agent = None
         best_profit = 0
+        best_profit_idx = None
         best_agents_profit = []
         day_best_agents_profit = []
-        for i in range(self.simulation_length):
+        for i in range(self.num_of_iterations):
             print("=" * 100)
-            print(f"Day {i}")
             self.agents = self.GA.evolve(self.agents)
             day_best_agent = None
             for agent in self.agents:
@@ -31,15 +31,21 @@ class Simulation:
 
                 if best_agent is None or agent.profit > best_profit:
                     best_profit = agent.profit
+                    best_profit_idx = i
                     best_agent = agent
                 if day_best_agent is None or agent.profit > day_best_agent.profit:
                     day_best_agent = agent    
 
             day_best_agents_profit.append(day_best_agent.profit)
             best_agents_profit.append(best_agent.profit)
-            print(f"Days {i} best agent: Agent{self.agents.index(day_best_agent)} profit = {day_best_agent.profit - self.start_asset}")
-            print(f"Best profit so far = {best_agent.profit - self.start_asset}")
+            print(f"Iteration {i} best agent: Agent{self.agents.index(day_best_agent)}, profit = {day_best_agent.profit - self.start_asset}")
+            print(f"Best profit so far = {best_agent.profit - self.start_asset}, found in iteration = {best_profit_idx}")
 
+        print(f"Best agent sale history: {best_agent.sale_history}")
+        self.export_to_csv(filename=filename, best_agents_profit=best_agents_profit, day_best_agents_profit=day_best_agents_profit)
+        return self.agents, day_best_agents_profit, best_agents_profit
+
+    def export_to_csv(self, filename, best_agents_profit, day_best_agents_profit):
         results_agents_df = pd.DataFrame([{
             "profit": agent.profit,
             "age": agent.age,
@@ -47,15 +53,13 @@ class Simulation:
         } for agent in self.agents])
 
         results_df = pd.DataFrame({
-            "day": list(range(self.simulation_length)),
+            "day": list(range(self.num_of_iterations)),
             "best_agent_profit": best_agents_profit,
             "day_best_agent_profit": day_best_agents_profit
         })
 
         file_path = Path(filename).name
         results_path = Path(__file__).parent.parent / "csv_results"
+        results_path.mkdir(parents=True, exist_ok=True)
         results_df.to_csv(results_path / ("results_" + file_path.replace(".json", ".csv")))
         results_agents_df.to_csv(results_path / ("results_agents_" + file_path.replace(".json", ".csv")))
-        
-        return self.agents, day_best_agents_profit, best_agents_profit
-

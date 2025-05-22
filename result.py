@@ -8,7 +8,7 @@ configs = Path(path)
 
 for f in configs.glob("config1_0.json"):
     for it in range(10):
-        print(str(f), f"iteration {it}")
+        print(str(f), f"test number {it}")
         with open(f, "r", encoding="utf-8-sig") as conf:
             cnf = json.load(conf)
         start_asset = cnf["start_asset"]
@@ -30,7 +30,7 @@ for f in configs.glob("config1_0.json"):
             plt.tight_layout()
             sd = cnf["start_date"]
             ed = cnf["end_date"]
-            plt.savefig(f"graphs/no_stocks_agent{i}{f.name}{sd}{ed}{it}.png", dpi=300)
+            plt.savefig(f"graph/no_stocks_agent{i}{f.name}{sd}{ed}{it}.png", dpi=300)
             plt.close()
 
         plt.plot([i for i in range(len(days_best_agent))], days_best_agent)
