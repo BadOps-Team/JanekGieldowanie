@@ -3,8 +3,8 @@
     "lookback_days": 30,
     "forecast_days": 30,
 
-    "start_date": "2020-01-01",
-    "end_date": "2020-12-31",
+    "start_date": "2022-01-01",
+    "end_date": "2022-12-31",
     "start_asset": 50000,
     "stocks": [
         "AAPL", "SPOT", "MSFT", "GOOGL", "AMZN", "TSLA", "PFE"

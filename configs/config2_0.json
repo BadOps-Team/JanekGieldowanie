@@ -5,7 +5,7 @@
 
     "start_date": "2020-01-01",
     "end_date": "2020-12-31",
-    "start_asset": 50000,
+    "start_asset": 500000,
     "stocks": [
         "AAPL", "SPOT", "MSFT", "GOOGL", "AMZN", "TSLA", "PFE"
     ],
