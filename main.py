@@ -80,6 +80,6 @@ if __name__ == "__main__":
         exit(0)
 
     main_dir = Path(__file__).parent
-    DirectoryUtil.directory_exists(main_dir, "graph", True)
+    DirectoryUtil.directory_exists(main_dir, "graphs", True)
     DirectoryUtil.directory_exists(main_dir, "csv_results", True)
     main(args.config)
