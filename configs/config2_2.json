@@ -7,7 +7,7 @@
     "end_date": "2020-12-31",
     "start_asset": 50000,
     "stocks": [
-        "AAPL", "SPOT", "MSFT", "GOOGL", "AMZN", "TSLA", "PFE"
+        "AAPL", "SPOT", "MSFT"
     ],
 
     "size": 10,
