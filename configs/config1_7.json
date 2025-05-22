@@ -18,8 +18,8 @@
         "float_mutation_variance": 1,
         "rotation_size_variance": 1,
         "rotation_shift_variance": 1,
-        "mutate_change_chance": 0.5,
-        "mutate_rotate_chance": 0.5,
+        "mutate_change_chance": 0,
+        "mutate_rotate_chance": 1,
         "crossover_point_amount": 2,
         "crossover_point_chance": 0.5
     },
