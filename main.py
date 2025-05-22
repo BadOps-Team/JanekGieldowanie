@@ -3,6 +3,7 @@ import sys
 from pathlib import Path
 from math import inf
 from datetime import datetime
+import argparse
 
 from Algorithm import GeneticAlgorithm, Genome
 from Simulation import Simulation
@@ -58,6 +59,19 @@ def main(name):
     return [{'profit': a.profit, 'history': a.sale_history} for a in agents_list], [dba - start_asset for dba in days_best_agent], [ba - start_asset for ba in best_agent]
 
 if __name__ == "__main__":
+    argparser = argparse.ArgumentParser()
+    argparser.add_argument("--config", "-c", help="Path to the configuration file", type=str, default="config/config1_0.json")
+    argparser.add_argument("--test", "-t", help="should run estimation tests", action="store_true", default=False)
+
+    args = argparser.parse_args()
+
+    if args.test:
+        from tests import EstimatorsTests
+
+        est_test = EstimatorsTests()
+        est_test.run_tests()
+        exit(0)
+
     main_dir = Path(__file__).parent
     DirectoryUtil.directory_exists(main_dir, "graph", True)
     DirectoryUtil.directory_exists(main_dir, "csv_results", True)

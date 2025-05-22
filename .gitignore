@@ -5,3 +5,4 @@ data/*
 data/
 .idea*
 .DS_Store
+csv_results/*
