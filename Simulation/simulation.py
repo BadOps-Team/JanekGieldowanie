@@ -40,6 +40,8 @@ class Simulation:
 
             iteration_best_agents_profit.append(iteration_best_agent.profit)
             best_agents_profit.append(best_agent.profit)
+
+            self.GA.agent_life_lengths += [agent.age for agent in self.agents]
             print(f"Iteration {i} best agent: Agent{self.agents.index(iteration_best_agent)}, profit = {iteration_best_agent.profit - self.start_asset}")
             print(f"Best profit so far = {best_agent.profit - self.start_asset}, found in iteration = {best_profit_idx}")
 
