@@ -42,15 +42,6 @@ class Genome:
         )
 
     @classmethod
-    def random(cls) -> Self:
-        return cls(
-            sale_history = {
-                'AAPL': Gene([np.random.uniform(-10, 10) for _ in range(10)]),
-                'SPOT': Gene([np.random.uniform(-10, 10) for _ in range(10)])
-            }
-        )
-
-    @classmethod
     def warm_start(cls, *, stocks: list[tuple[str, StockUtility]], historical_prices: dict[str, list[float]],
                    start_asset: float, max_actions_per_day_bought: int, max_actions_per_day_sold: int,
                    simulation_length: int) -> Self:
@@ -91,9 +82,6 @@ class Genome:
                     inventory[ticker] += action
 
                 sale_history[ticker].append(action)
-
-        for ticker, actions in sale_history.items():
-            assert len(actions) == simulation_length, f"{ticker} history length mismatch"
 
         sale_history = {ticker: Gene(actions) for ticker, actions in sale_history.items()}
         return cls(sale_history=sale_history)

@@ -61,8 +61,8 @@ def main(name, it=0):
 
     GA = GeneticAlgorithm(ga_params)
     simulation = Simulation(agents, stocks, start_asset, num_of_iterations, GA, historical_prices, it)
-    agents_list, days_best_agent, best_agent = simulation.run_simulation(name)
-    return [{'profit': a.profit, 'history': a.sale_history} for a in agents_list], [dba - start_asset for dba in days_best_agent], [ba - start_asset for ba in best_agent]
+    best_agent, iteration_best_agent, best_agents_profit = simulation.run_simulation(name)
+    return {'profit': best_agent.profit, 'history': best_agent.sale_history}, [dba - start_asset for dba in iteration_best_agent], [ba - start_asset for ba in best_agents_profit]
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
