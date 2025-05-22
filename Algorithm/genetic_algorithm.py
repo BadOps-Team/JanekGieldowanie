@@ -18,6 +18,8 @@ class GeneticAlgorithm:
             self.settings.crossover_point_amount = ga_config["crossover_point_amount"]
             self.settings.crossover_point_chance = ga_config["crossover_point_chance"]
 
+        self.agent_life_lengths = []
+
     def evolve(self, agents: list[Agent]) -> list[Agent]:
         fitness = [agent.profit for agent in agents]
         sum_fitness = sum(fitness)
@@ -43,9 +45,14 @@ class GeneticAlgorithm:
             children.append(child_agent)
 
         alive_size = len(agents) - len(children)
-        alive = np.random.choice(agents, size=alive_size, p=fitness).tolist()
-
+        alive_indices = np.random.choice(range(len(agents)), size=alive_size, p=fitness).tolist()
+        
+        alive = np.array(agents)[alive_indices]
         for agent in alive:
             agent.age += 1
 
-        return alive + children
+        dead = np.delete(agents, alive_indices)
+        for agent in dead:
+            self.agent_life_lengths.append(agent.age)
+
+        return alive.tolist() + children
