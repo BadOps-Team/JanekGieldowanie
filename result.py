@@ -1,11 +1,14 @@
 import json
 import matplotlib.pyplot as plt
 from pathlib import Path
+from Util import DirectoryUtil
 
 from main import main
 path = "configs"
 configs = Path(path)
 
+main_dir = Path(__file__).parent
+DirectoryUtil.directory_exists(main_dir, "graphs", True)
 for f in configs.glob("config1_0.json"):
     for it in range(10):
         print(str(f), f"test number {it}")
@@ -21,7 +24,7 @@ for f in configs.glob("config1_0.json"):
                 y.append(ops[j] + y[j-1])
             plt.plot(x, y, label=stock)
 
-        plt.title(f"Best agent profit - {best_agent['profit'] - start_asset}")
+        plt.title(f"Best agent profit - {round(best_agent['profit'] - start_asset, 2)}")
         plt.xlabel("Day")
         plt.ylabel("Number of stocks")
         plt.legend()
@@ -29,6 +32,7 @@ for f in configs.glob("config1_0.json"):
         plt.tight_layout()
         sd = cnf["start_date"]
         ed = cnf["end_date"]
+
         plt.savefig(f"graphs/best_agent_stocks{f.name}{sd}{ed}{it}.png", dpi=300)
         plt.close()
 
