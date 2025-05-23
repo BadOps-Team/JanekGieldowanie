@@ -11,7 +11,7 @@
     ],
 
     "size": 5,
-    "num_of_iterations": 50000,
+    "num_of_iterations": 5000,
     "ga": {
         "children_ratio": 0.6,
         "crossover_imbalance": 0.4,

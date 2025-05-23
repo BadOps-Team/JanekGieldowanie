@@ -1,5 +1,4 @@
 import json
-import sys
 from pathlib import Path
 from math import inf
 from datetime import datetime
@@ -62,7 +61,7 @@ def main(name, it=0):
     GA = GeneticAlgorithm(ga_params)
     simulation = Simulation(agents, stocks, start_asset, num_of_iterations, GA, historical_prices, it)
     best_agent, iteration_best_agent, best_agents_profit = simulation.run_simulation(name)
-    return {'profit': best_agent.profit, 'history': best_agent.sale_history}, [dba - start_asset for dba in iteration_best_agent], [ba - start_asset for ba in best_agents_profit]
+    return {'profit': best_agent.profit, 'history': best_agent.sale_history}, iteration_best_agent, best_agents_profit
 
 if __name__ == "__main__":
     argparser = argparse.ArgumentParser()
@@ -80,6 +79,6 @@ if __name__ == "__main__":
         exit(0)
 
     main_dir = Path(__file__).parent
-    DirectoryUtil.directory_exists(main_dir, "graph", True)
+    DirectoryUtil.directory_exists(main_dir, "graphs", True)
     DirectoryUtil.directory_exists(main_dir, "csv_results", True)
     main(args.config)

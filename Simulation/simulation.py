@@ -38,12 +38,13 @@ class Simulation:
                 if iteration_best_agent is None or agent.profit > iteration_best_agent.profit:
                     iteration_best_agent = agent
 
-            iteration_best_agents_profit.append(iteration_best_agent.profit)
-            best_agents_profit.append(best_agent.profit)
+            iteration_best_agents_profit.append(round(iteration_best_agent.profit - self.start_asset, 2))
+            best_agents_profit.append(round(best_agent.profit - self.start_asset, 2))
 
             self.GA.agent_life_lengths += [agent.age for agent in self.agents]
-            print(f"Iteration {i} best agent: Agent{self.agents.index(iteration_best_agent)}, profit = {iteration_best_agent.profit - self.start_asset}")
-            print(f"Best profit so far = {best_agent.profit - self.start_asset}, found in iteration = {best_profit_idx}")
+            print(f"Iteration {i} best agent: Agent{self.agents.index(iteration_best_agent)}, profit = {round(iteration_best_agent.profit - self.start_asset, 2)}")
+            print(f"Best profit so far = {round(best_agent.profit - self.start_asset, 2)}, found in iteration = {best_profit_idx}")
+
 
         print(f"Best agent sale history: {best_agent.sale_history}")
         self.export_to_csv(
